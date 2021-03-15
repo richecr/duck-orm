@@ -4,11 +4,13 @@ from duck_orm.sql.sqlite import TYPES_SQL
 
 class Column:
     def __init__(self, type_column: str, unique: bool = False,
-                 primary_key: bool = False, not_null: bool = False):
+                 primary_key: bool = False, not_null: bool = False,
+                 auto_increment: bool = False):
         self.unique = unique
         self.primary_key = primary_key
         self.not_null = not_null
         self.type = type_column
+        self.auto_increment = auto_increment
 
     @property
     def type_sql(cls) -> str:
@@ -19,6 +21,8 @@ class Column:
 
         if (self.primary_key):
             column_sql += " PRIMARY KEY"
+        if (self.auto_increment):
+            column_sql += " AUTOINCREMENT"
         if (self.not_null):
             column_sql += " NOT NULL"
         if (self.unique):
@@ -39,20 +43,22 @@ class String(Column, str):
     def __new__(cls, **kwargs):
         return super().__new__(cls, 'str')
 
-    def __init__(self, min_length: int, unique: bool = False,
+    def __init__(self, min_length: int = 1, unique: bool = False,
                  primary_key: bool = False, not_null: bool = False):
         self.min_length = min_length
         super().__init__('str', unique, primary_key, not_null)
 
 
 class Integer(Column, int):
-    def __new__(cls, min_value: int = None, **kwargs):
+    def __new__(cls, **kwargs):
         return super().__new__(cls)
 
     def __init__(self, min_value: int = None, unique: bool = False,
-                 primary_key: bool = False):
+                 primary_key: bool = False, auto_increment: bool = False,
+                 not_null:  bool = False):
         self.min_value = min_value
-        super().__init__('int', unique, primary_key)
+        super().__init__('int', unique, primary_key,
+                         auto_increment=auto_increment, not_null=not_null)
 
 
 class BigInteger(Column, int):

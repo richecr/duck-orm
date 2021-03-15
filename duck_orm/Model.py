@@ -7,6 +7,7 @@ from duck_orm.utils.functions import get_dialect
 
 T = TypeVar('T', bound='Model')
 
+
 class Model:
     __tablename__: str = ''
     __db__: Database
@@ -36,9 +37,7 @@ class Model:
 
     @classmethod
     def _get_create_sql(cls):
-        fields: List[Tuple[str, str]] = [
-            ('id', 'INTEGER PRIMARY KEY AUTOINCREMENT')
-        ]
+        fields: List[Tuple[str, str]] = []
 
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
@@ -83,7 +82,6 @@ class Model:
     @classmethod
     async def find_all(cls: Type[T], fields: List[str] = []):
         sql, fields = cls._get_select_all_sql(fields)
-        print(sql)
         data = await cls.__db__.fetch_all(sql)
         result: List[cls] = []
         for row in data:
@@ -103,7 +101,7 @@ class Model:
         sql, values = model._get_insert_sql()
         cursor = await cls.__db__.execute(query=sql, values=values)
         model._instance['id'] = cursor
-    
+
     @classmethod
     def _drop_table(cls, name_table: str, dialect: str):
         query_executor = get_dialect(dialect)
@@ -112,5 +110,4 @@ class Model:
     @classmethod
     async def drop_table(cls):
         sql = cls._drop_table(cls._get_name(), str(cls.__db__.url.dialect))
-        print(sql)
         await cls.__db__.execute(sql)
