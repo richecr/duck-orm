@@ -66,6 +66,9 @@ class Model:
 
         for name, field in inspect.getmembers(self.__class__):
             if isinstance(field, fields_type.Column):
+                if field.primary_key and field.auto_increment:
+                    continue
+
                 fields_values[name] = getattr(self, name)
                 fields_name.append(name)
                 placeholders.append(":{field}".format(field=name))
@@ -84,8 +87,9 @@ class Model:
         sql, fields = cls._get_select_all_sql(fields)
         data = await cls.__db__.fetch_all(sql)
         result: List[cls] = []
+        dialect = get_dialect(str(cls.__db__.url.dialect))
         for row in data:
-            entity = dict(zip(fields, row))
+            entity = dialect.parser(row)
             result.append(cls(**entity))
 
         return result
@@ -94,7 +98,13 @@ class Model:
     async def find_all_tables(cls):
         query_executor = get_dialect(str(cls.__db__.url.dialect))
         sql = query_executor.select_tables_sql(cls._get_name())
-        return await cls.__db__.fetch_all(sql)
+        data = await cls.__db__.fetch_all(sql)
+        result: List = []
+        for row in data:
+            entity = query_executor.parser(row)
+            result.append(entity)
+
+        return result
 
     @classmethod
     async def save(cls, model):

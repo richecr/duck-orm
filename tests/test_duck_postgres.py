@@ -6,7 +6,7 @@ import pytest
 from duck_orm.Model import Model
 from duck_orm.sql import fields as Field
 
-db = Database('sqlite:///example.db')
+db = Database('postgresql://postgres:arquinator2020@localhost:5432/orm')
 
 
 class Person(Model):
@@ -14,18 +14,11 @@ class Person(Model):
     __db__ = db
 
     id: int = Field.Integer(
-        primary_key=True, auto_increment=True, not_null=True)
+        primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
     age: int = Field.Integer(min_value=18)
     salary: int = Field.BigInteger()
-
-
-@pytest.fixture(autouse=True)
-async def create_test_database():
-    await db.connect()
-    yield
-    await Person.drop_table()
 
 
 def async_decorator(func):
@@ -54,20 +47,21 @@ def test_create_sql():
     assert sql == "CREATE TABLE IF NOT EXISTS persons (" + \
         "age INTEGER, " + \
         "first_name TEXT UNIQUE, " + \
-        "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " + \
+        "id SERIAL PRIMARY KEY, " + \
         "last_name TEXT NOT NULL, " + \
         "salary BIGINT);"
 
 
 def get_table(table, tables):
     for tup in tables:
-        if (tup[0] == table):
+        if (tup['tablename'] == table):
             return True
     return False
 
 
 @async_decorator
 async def test_create_table():
+    await db.connect()
     await Person.create()
     tables = await Person.find_all_tables()
     assert get_table('persons', tables)
@@ -87,9 +81,9 @@ async def test_select_all_persons():
     p = Person(first_name="Lucas", last_name="Lucas Andrade",
                age=21, salary=20000000)
     await p.save(p)
-    persons = await Person.find_all(['first_name'])
-    assert persons[0].first_name == 'Lucas'
-    assert persons[1].first_name == 'Rich'
+    persons = await Person.find_all()
+    assert persons[0].first_name == 'Rich'
+    assert persons[1].first_name == 'Lucas'
 
 
 @async_decorator

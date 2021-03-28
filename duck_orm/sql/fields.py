@@ -19,9 +19,11 @@ class Column:
     def column_sql(self, dialect: str) -> str:
         column_sql = self.get_dialect(dialect)[self.type]
 
+        if (self.auto_increment and dialect == 'postgresql'):
+            column_sql = "SERIAL"
         if (self.primary_key):
             column_sql += " PRIMARY KEY"
-        if (self.auto_increment):
+        if (self.auto_increment and dialect != 'postgresql'):
             column_sql += " AUTOINCREMENT"
         if (self.not_null):
             column_sql += " NOT NULL"
@@ -31,7 +33,7 @@ class Column:
         return column_sql
 
     def get_dialect(self, dialect: str) -> Dict[str, str]:
-        if dialect == 'postgres':
+        if dialect == 'postgresql':
             return TYPES_SQL
         elif dialect == 'sqlite':
             return TYPES_SQL

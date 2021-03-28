@@ -1,10 +1,11 @@
-from typing import List
+from typing import List, Mapping
 
 SELECT_TABLES_SQL = "SELECT name FROM sqlite_master where type = 'table';"
 SELECT_TABLE_SQL = "SELECT {fields} FROM {table};"
 INSERT_INTO_SQL = "INSERT INTO {table}({fields_name}) VALUES({placeholders});"
 CREATE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"
 DROP_TABLE_SQL = "DROP TABLE {name};"
+
 
 class QueryExecutor:
     @classmethod
@@ -28,3 +29,11 @@ class QueryExecutor:
     @classmethod
     def select_tables_sql(cls, name_table: str):
         return SELECT_TABLES_SQL
+
+    @classmethod
+    def parser(cls, row: Mapping):
+        entity = {}
+        for key, value in row.items():
+            entity[key] = value
+
+        return entity

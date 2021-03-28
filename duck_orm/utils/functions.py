@@ -4,7 +4,7 @@ from duck_orm.sql.postgres import QueryPostgres
 
 
 def get_dialect(dialect: str) -> QueryExecutor:
-    if dialect == 'postgres':
+    if dialect == 'postgresql':
         return QueryPostgres()
     elif dialect == 'sqlite':
         return QuerySQLite()
