@@ -49,7 +49,7 @@ class Model:
         return query_executor.create_sql(cls._get_name(), fields_config)
 
     @classmethod
-    def _get_select_all_sql(cls, fields: List[str] = []):
+    def _get_select_all_sql(cls, fields: List[str] = [], conditions: List[Condition] = []):
         if fields == []:
             fields = ['id']
             for name, field in inspect.getmembers(cls):
@@ -57,7 +57,13 @@ class Model:
                     fields.append(name)
 
         query_executor = get_dialect(str(cls.__db__.url.dialect))
-        sql = query_executor.select_sql(cls._get_name(), fields)
+        conditions_str = '1 = 1'
+        if len(conditions) > 0:
+            conditions_str = ' and '.join(
+                map(lambda condition: condition.get_condition(), conditions))
+
+        sql = query_executor.select_sql(
+            cls._get_name(), fields, conditions_str)
         return sql, fields
 
     def _get_insert_sql(self):
@@ -84,8 +90,8 @@ class Model:
         return await cls.__db__.execute(cls._get_create_sql())
 
     @classmethod
-    async def find_all(cls: Type[T], fields: List[str] = []):
-        sql, fields = cls._get_select_all_sql(fields)
+    async def find_all(cls: Type[T], fields: List[str] = [], conditions: List[Condition] = []):
+        sql, fields = cls._get_select_all_sql(fields, conditions)
         data = await cls.__db__.fetch_all(sql)
         result: List[cls] = []
         dialect = get_dialect(str(cls.__db__.url.dialect))
@@ -124,14 +130,16 @@ class Model:
         await cls.__db__.execute(sql)
 
     @classmethod
-    def _delete(cls, name_table: str, condition: Condition, dialect: str):
+    def _delete(cls, name_table: str, conditions: List[Condition], dialect: str):
         query_executor = get_dialect(dialect)
-        return query_executor.delete_sql(name_table, condition.get_condition())
+        conditions_str = ' and '.join(
+            map(lambda condition: condition.get_condition(), conditions))
+        return query_executor.delete_sql(name_table, conditions_str)
 
     @classmethod
-    async def delete(cls, condition: Condition):
+    async def delete(cls, conditions: List[Condition]):
         try:
-            sql = cls._delete(cls._get_name(), condition,
+            sql = cls._delete(cls._get_name(), conditions,
                               str(cls.__db__.url.dialect))
             await cls.__db__.execute(sql)
         except Exception as ex:

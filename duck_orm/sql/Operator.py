@@ -10,6 +10,8 @@ class Operator:
             self.operator = '>='
         elif operator == '>=':
             self.operator = '>='
+        elif operator == 'LIKE':
+            self.operator = 'LIKE'
         elif operator == 'NOT IN':
             self.operator = 'NOT IN'
         elif operator == 'IN':

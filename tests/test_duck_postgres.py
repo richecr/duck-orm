@@ -88,8 +88,33 @@ async def test_select_all_persons():
 
 
 @async_decorator
+async def test_sql_select_where_persons():
+    sql = Person._get_select_all_sql(
+        conditions=[
+            Condition('first_name', '=', 'Rich')
+        ]
+    )
+    assert sql[0] == "SELECT id, age, first_name, id, last_name, salary FROM persons WHERE first_name = 'Rich';"
+
+
+@async_decorator
+async def test_select_where_persons():
+    persons = await Person.find_all(
+        conditions=[
+            Condition('first_name', '=', 'Rich')
+        ]
+    )
+    assert len(persons) == 1
+    assert persons[0].first_name == 'Rich'
+
+
+@async_decorator
 async def test_delete_person():
-    await Person.delete(Condition('first_name', '=', 'Rich'))
+    await Person.delete(
+        conditions=[
+            Condition('first_name', '=', 'Rich')
+        ]
+    )
     persons = await Person.find_all()
     print(persons)
     assert len(persons) == 1

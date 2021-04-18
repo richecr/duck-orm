@@ -1,10 +1,10 @@
 from typing import List, Mapping
 
 SELECT_TABLES_SQL = "SELECT name FROM sqlite_master where type = 'table';"
-SELECT_TABLE_SQL = "SELECT {fields} FROM {table};"
+SELECT_TABLE_SQL = "SELECT {fields} FROM {table} WHERE {conditions};"
 INSERT_INTO_SQL = "INSERT INTO {table}({fields_name}) VALUES({placeholders});"
 CREATE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"
-DELETE_SQL = "DELETE FROM {table} WHERE {search_condition};"
+DELETE_SQL = "DELETE FROM {table} WHERE {conditions};"
 DROP_TABLE_SQL = "DROP TABLE {name};"
 
 
@@ -20,12 +20,12 @@ class QueryExecutor:
                                       placeholders=", ".join(placeholders))
 
     @classmethod
-    def select_sql(cls, name_table: str, fields: List[str]):
-        return SELECT_TABLE_SQL.format(table=name_table, fields=", ".join(fields))
+    def select_sql(cls, name_table: str, fields: List[str], conditions: str):
+        return SELECT_TABLE_SQL.format(table=name_table, fields=", ".join(fields), conditions=conditions)
 
     @classmethod
-    def delete_sql(cls, name_table: str, condition: str):
-        return DELETE_SQL.format(table=name_table, search_condition=condition)
+    def delete_sql(cls, name_table: str, conditions: str):
+        return DELETE_SQL.format(table=name_table, conditions=conditions)
 
     @classmethod
     def drop_table(cls, name_table: str):
