@@ -4,6 +4,7 @@ import inspect
 
 from duck_orm.sql import fields as fields_type
 from duck_orm.utils.functions import get_dialect
+from duck_orm.sql.Condition import Condition
 
 T = TypeVar('T', bound='Model')
 
@@ -121,3 +122,17 @@ class Model:
     async def drop_table(cls):
         sql = cls._drop_table(cls._get_name(), str(cls.__db__.url.dialect))
         await cls.__db__.execute(sql)
+
+    @classmethod
+    def _delete(cls, name_table: str, condition: Condition, dialect: str):
+        query_executor = get_dialect(dialect)
+        return query_executor.delete_sql(name_table, condition.get_condition())
+
+    @classmethod
+    async def delete(cls, condition: Condition):
+        try:
+            sql = cls._delete(cls._get_name(), condition,
+                              str(cls.__db__.url.dialect))
+            await cls.__db__.execute(sql)
+        except Exception as ex:
+            print('DELETE ERROR: {ex}'.format(ex=ex))

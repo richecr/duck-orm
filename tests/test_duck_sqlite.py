@@ -5,6 +5,7 @@ import pytest
 
 from duck_orm.Model import Model
 from duck_orm.sql import fields as Field
+from duck_orm.sql.Condition import Condition
 
 db = Database('sqlite:///example.db')
 
@@ -90,6 +91,15 @@ async def test_select_all_persons():
     persons = await Person.find_all(['first_name'])
     assert persons[0].first_name == 'Lucas'
     assert persons[1].first_name == 'Rich'
+
+
+@async_decorator
+async def test_delete_person():
+    await Person.delete(Condition('first_name', '=', 'Rich'))
+    persons = await Person.find_all()
+    print(persons)
+    assert len(persons) == 1
+    assert persons[0].first_name == 'Lucas'
 
 
 @async_decorator
