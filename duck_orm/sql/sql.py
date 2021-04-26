@@ -2,6 +2,7 @@ from typing import List, Mapping
 
 SELECT_TABLES_SQL = "SELECT name FROM sqlite_master where type = 'table';"
 SELECT_TABLE_SQL = "SELECT {fields} FROM {table} WHERE {conditions};"
+SELECT_LIMIT_TABLE_SQL = "SELECT TOP {limit} {fields} FROM {table} WHERE {conditions};"
 INSERT_INTO_SQL = "INSERT INTO {table}({fields_name}) VALUES({placeholders});"
 CREATE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"
 DELETE_SQL = "DELETE FROM {table} WHERE {conditions};"
@@ -20,7 +21,9 @@ class QueryExecutor:
                                       placeholders=", ".join(placeholders))
 
     @classmethod
-    def select_sql(cls, name_table: str, fields: List[str], conditions: str):
+    def select_sql(cls, name_table: str, fields: List[str], conditions: str, limit: int = None):
+        if (limit != None):
+            return SELECT_LIMIT_TABLE_SQL.format(limit=limit, table=name_table, fields=", ".join(fields), conditions=conditions)
         return SELECT_TABLE_SQL.format(table=name_table, fields=", ".join(fields), conditions=conditions)
 
     @classmethod

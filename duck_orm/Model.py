@@ -49,7 +49,7 @@ class Model:
         return query_executor.create_sql(cls._get_name(), fields_config)
 
     @classmethod
-    def _get_select_all_sql(cls, fields: List[str] = [], conditions: List[Condition] = []):
+    def _get_select_sql(cls, fields: List[str] = [], conditions: List[Condition] = [], limit: int = None):
         if fields == []:
             fields = ['id']
             for name, field in inspect.getmembers(cls):
@@ -63,7 +63,7 @@ class Model:
                 map(lambda condition: condition.get_condition(), conditions))
 
         sql = query_executor.select_sql(
-            cls._get_name(), fields, conditions_str)
+            cls._get_name(), fields, conditions_str, limit)
         return sql, fields
 
     def _get_insert_sql(self):
@@ -91,7 +91,7 @@ class Model:
 
     @classmethod
     async def find_all(cls: Type[T], fields: List[str] = [], conditions: List[Condition] = []):
-        sql, fields = cls._get_select_all_sql(fields, conditions)
+        sql, fields = cls._get_select_sql(fields, conditions)
         data = await cls.__db__.fetch_all(sql)
         result: List[cls] = []
         dialect = get_dialect(str(cls.__db__.url.dialect))
@@ -99,6 +99,15 @@ class Model:
             entity = dialect.parser(row)
             result.append(cls(**entity))
 
+        return result
+
+    @classmethod
+    async def find_one(cls: Type[T],  fields: List[str] = [], conditions: List[Condition] = []):
+        sql, fields = cls._get_select_sql(fields, conditions, limit=1)
+        data = await cls.__db__.fetch_one(sql)
+        dialect = get_dialect(str(cls.__db__.url.dialect))
+        entity = dialect.parser(data)
+        result: cls = cls(**entity)
         return result
 
     @classmethod
