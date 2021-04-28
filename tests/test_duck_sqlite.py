@@ -95,7 +95,7 @@ async def test_select_all_persons():
 
 @async_decorator
 async def test_sql_select_where_persons():
-    sql = Person._get_select_all_sql(
+    sql = Person._get_select_sql(
         conditions=[
             Condition('first_name', '=', 'Rich')
         ]
@@ -125,6 +125,24 @@ async def test_delete_person():
     print(persons)
     assert len(persons) == 1
     assert persons[0].first_name == 'Lucas'
+
+
+@async_decorator
+async def test_find_one():
+    person = await Person.find_one(conditions=[
+        Condition('first_name', '=', 'Lucas')
+    ])
+    assert person != None
+    assert person.first_name == 'Lucas'
+    assert person.last_name == 'Lucas Andrade'
+
+
+@async_decorator
+async def test_find_one_not_found():
+    person = await Person.find_one(conditions=[
+        Condition('first_name', '=', 'Rich')
+    ])
+    assert person == None
 
 
 @async_decorator

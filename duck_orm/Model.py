@@ -106,8 +106,11 @@ class Model:
         sql, fields = cls._get_select_sql(fields, conditions, limit=1)
         data = await cls.__db__.fetch_one(sql)
         dialect = get_dialect(str(cls.__db__.url.dialect))
-        entity = dialect.parser(data)
-        result: cls = cls(**entity)
+        entity = None
+        result: cls = None
+        if (data != None):
+            entity = dialect.parser(data)
+            result: cls = cls(**entity)
         return result
 
     @classmethod

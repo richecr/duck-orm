@@ -2,7 +2,7 @@ from typing import List, Mapping
 
 SELECT_TABLES_SQL = "SELECT name FROM sqlite_master where type = 'table';"
 SELECT_TABLE_SQL = "SELECT {fields} FROM {table} WHERE {conditions};"
-SELECT_LIMIT_TABLE_SQL = "SELECT TOP {limit} {fields} FROM {table} WHERE {conditions};"
+SELECT_LIMIT_TABLE_SQL = "SELECT {fields} FROM {table} WHERE {conditions} LIMIT {limit};"
 INSERT_INTO_SQL = "INSERT INTO {table}({fields_name}) VALUES({placeholders});"
 CREATE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"
 DELETE_SQL = "DELETE FROM {table} WHERE {conditions};"
