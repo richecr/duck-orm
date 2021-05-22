@@ -1,4 +1,4 @@
-from typing import List, Tuple, Type, TypeVar
+from typing import Any, List, Tuple, Type, TypeVar
 from databases import Database
 import inspect
 
@@ -53,12 +53,12 @@ class Model:
         return await cls.__db__.execute(cls._get_create_sql())
 
     @classmethod
-    def _get_select_sql(cls, fields: List[str] = [], conditions: List[Condition] = [], limit: int = None):
-        if fields == []:
-            fields = ['id']
+    def _get_select_sql(cls, fields_includes: List[str] = [], conditions: List[Condition] = [], limit: int = None):
+        if fields_includes == []:
+            fields_includes = ['id']
             for name, field in inspect.getmembers(cls):
                 if isinstance(field, fields_type.Column):
-                    fields.append(name)
+                    fields_includes.append(name)
 
         query_executor = get_dialect(str(cls.__db__.url.dialect))
         conditions_str = '1 = 1'
@@ -67,12 +67,13 @@ class Model:
                 map(lambda condition: condition.get_condition(), conditions))
 
         sql = query_executor.select_sql(
-            cls._get_name(), fields, conditions_str, limit)
-        return sql, fields
+            cls._get_name(), fields_includes, conditions_str, limit)
+        return sql, fields_includes
 
     @classmethod
-    async def find_all(cls: Type[T], fields: List[str] = [], conditions: List[Condition] = [], limit: int = None):
-        sql, fields = cls._get_select_sql(fields, conditions, limit=limit)
+    async def find_all(cls: Type[T], fields_includes: List[str] = [], conditions: List[Condition] = [], limit: int = None):
+        sql, fields_includes = cls._get_select_sql(
+            fields_includes, conditions, limit=limit)
         data = await cls.__db__.fetch_all(sql)
         result: List[cls] = []
         dialect = get_dialect(str(cls.__db__.url.dialect))
@@ -83,8 +84,9 @@ class Model:
         return result
 
     @classmethod
-    async def find_one(cls: Type[T],  fields: List[str] = [], conditions: List[Condition] = []):
-        sql, fields = cls._get_select_sql(fields, conditions, limit=1)
+    async def find_one(cls: Type[T],  fields_includes: List[str] = [], conditions: List[Condition] = []):
+        sql, fields_includes = cls._get_select_sql(
+            fields_includes, conditions, limit=1)
         data = await cls.__db__.fetch_one(sql)
         dialect = get_dialect(str(cls.__db__.url.dialect))
         entity = None
