@@ -49,6 +49,10 @@ class Model:
         return query_executor.create_sql(cls._get_name(), fields_config)
 
     @classmethod
+    async def create(cls):
+        return await cls.__db__.execute(cls._get_create_sql())
+
+    @classmethod
     def _get_select_sql(cls, fields: List[str] = [], conditions: List[Condition] = [], limit: int = None):
         if fields == []:
             fields = ['id']
@@ -65,29 +69,6 @@ class Model:
         sql = query_executor.select_sql(
             cls._get_name(), fields, conditions_str, limit)
         return sql, fields
-
-    def _get_insert_sql(self):
-        fields_name = []
-        placeholders = []
-        fields_values = {}
-
-        for name, field in inspect.getmembers(self.__class__):
-            if isinstance(field, fields_type.Column):
-                if field.primary_key and field.auto_increment:
-                    continue
-
-                fields_values[name] = getattr(self, name)
-                fields_name.append(name)
-                placeholders.append(":{field}".format(field=name))
-
-        query_executor = get_dialect(str(self.__db__.url.dialect))
-        sql = query_executor.insert_sql(
-            self._get_name(), fields_name, placeholders)
-        return sql, fields_values
-
-    @classmethod
-    async def create(cls):
-        return await cls.__db__.execute(cls._get_create_sql())
 
     @classmethod
     async def find_all(cls: Type[T], fields: List[str] = [], conditions: List[Condition] = []):
@@ -124,6 +105,25 @@ class Model:
             result.append(entity)
 
         return result
+
+    def _get_insert_sql(self):
+        fields_name = []
+        placeholders = []
+        fields_values = {}
+
+        for name, field in inspect.getmembers(self.__class__):
+            if isinstance(field, fields_type.Column):
+                if field.primary_key and field.auto_increment:
+                    continue
+
+                fields_values[name] = getattr(self, name)
+                fields_name.append(name)
+                placeholders.append(":{field}".format(field=name))
+
+        query_executor = get_dialect(str(self.__db__.url.dialect))
+        sql = query_executor.insert_sql(
+            self._get_name(), fields_name, placeholders)
+        return sql, fields_values
 
     @classmethod
     async def save(cls, model):
