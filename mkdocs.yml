@@ -1,0 +1,16 @@
+site_name: Duck-ORM
+site_description: Async database support for Python.
+
+theme:
+  name: "material"
+
+repo_name: richecr/duck-orm
+repo_url: https://github.com/richecr/duck-orm
+# edit_uri: ""
+
+nav:
+  - Introduction: "index.md"
+
+markdown_extensions:
+  - admonition
+  - codehilite
