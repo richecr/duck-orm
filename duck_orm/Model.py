@@ -71,8 +71,8 @@ class Model:
         return sql, fields
 
     @classmethod
-    async def find_all(cls: Type[T], fields: List[str] = [], conditions: List[Condition] = []):
-        sql, fields = cls._get_select_sql(fields, conditions)
+    async def find_all(cls: Type[T], fields: List[str] = [], conditions: List[Condition] = [], limit: int = None):
+        sql, fields = cls._get_select_sql(fields, conditions, limit=limit)
         data = await cls.__db__.fetch_all(sql)
         result: List[cls] = []
         dialect = get_dialect(str(cls.__db__.url.dialect))
