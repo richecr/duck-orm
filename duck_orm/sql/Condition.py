@@ -7,11 +7,13 @@ class Condition:
     _field: str
     _operator: Operator
     _value: Union[List, str, int]
+    _lower_str: bool
 
-    def __init__(self, field: str, operator: str, value: Union[List, str, int]):
+    def __init__(self, field: str, operator: str, value: Union[List, str, int], lower_str: bool = False):
         self._field = field
         self._operator = Operator(operator)
         self._value = value
+        self._lower_str = lower_str
 
     def get_condition(self):
         value = ''
@@ -27,4 +29,9 @@ class Condition:
         else:
             raise Exception('Value type is not supported')
 
-        return "{field} {operator} {value}".format(field=self._field, operator=self._operator.operator, value=value)
+        field = self._field
+        if (self._lower_str):
+            field = 'LOWER({field})'.format(field=field)
+            value = "LOWER('{value}')".format(value=self._value)
+
+        return "{field} {operator} {value}".format(field=field, operator=self._operator.operator, value=value)

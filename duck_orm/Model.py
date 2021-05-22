@@ -53,12 +53,19 @@ class Model:
         return await cls.__db__.execute(cls._get_create_sql())
 
     @classmethod
-    def _get_select_sql(cls, fields_includes: List[str] = [], conditions: List[Condition] = [], limit: int = None):
+    def get_fields_all(cls) -> List[str]:
+        fields_all: List[str] = []
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, fields_type.Column):
+                fields_all.append(name)
+
+        return fields_all
+
+    @classmethod
+    def _get_select_sql(cls, fields_includes: List[str] = [], fields_excludes: List[str] = [], conditions: List[Condition] = [], limit: int = None):
         if fields_includes == []:
-            fields_includes = ['id']
-            for name, field in inspect.getmembers(cls):
-                if isinstance(field, fields_type.Column):
-                    fields_includes.append(name)
+            fields_includes = cls.get_fields_all()
+        fields_includes = list(set(fields_includes) - set(fields_excludes))
 
         query_executor = get_dialect(str(cls.__db__.url.dialect))
         conditions_str = '1 = 1'
@@ -71,32 +78,32 @@ class Model:
         return sql, fields_includes
 
     @classmethod
-    async def find_all(cls: Type[T], fields_includes: List[str] = [], conditions: List[Condition] = [], limit: int = None):
+    async def find_all(cls: Type[T], fields_includes: List[str] = [], fields_excludes: List[str] = [], conditions: List[Condition] = [], limit: int = None):
         sql, fields_includes = cls._get_select_sql(
-            fields_includes, conditions, limit=limit)
+            fields_includes, fields_excludes, conditions, limit=limit)
         data = await cls.__db__.fetch_all(sql)
         result: List[cls] = []
         dialect = get_dialect(str(cls.__db__.url.dialect))
         for row in data:
-            entity = dialect.parser(row)
+            entity = dialect.parser(row, cls.get_fields_all())
             result.append(cls(**entity))
 
         return result
 
-    @classmethod
-    async def find_one(cls: Type[T],  fields_includes: List[str] = [], conditions: List[Condition] = []):
+    @ classmethod
+    async def find_one(cls: Type[T],  fields_includes: List[str] = [], fields_excludes: List[str] = [], conditions: List[Condition] = []):
         sql, fields_includes = cls._get_select_sql(
-            fields_includes, conditions, limit=1)
+            fields_includes, fields_excludes, conditions, limit=1)
         data = await cls.__db__.fetch_one(sql)
         dialect = get_dialect(str(cls.__db__.url.dialect))
         entity = None
         result: cls = None
         if (data != None):
-            entity = dialect.parser(data)
+            entity = dialect.parser(data, cls.get_fields_all())
             result: cls = cls(**entity)
         return result
 
-    @classmethod
+    @ classmethod
     async def find_all_tables(cls):
         query_executor = get_dialect(str(cls.__db__.url.dialect))
         sql = query_executor.select_tables_sql(cls._get_name())
@@ -127,30 +134,30 @@ class Model:
             self._get_name(), fields_name, placeholders)
         return sql, fields_values
 
-    @classmethod
+    @ classmethod
     async def save(cls, model):
         sql, values = model._get_insert_sql()
         cursor = await cls.__db__.execute(query=sql, values=values)
         model._instance['id'] = cursor
 
-    @classmethod
+    @ classmethod
     def _drop_table(cls, name_table: str, dialect: str):
         query_executor = get_dialect(dialect)
         return query_executor.drop_table(name_table)
 
-    @classmethod
+    @ classmethod
     async def drop_table(cls):
         sql = cls._drop_table(cls._get_name(), str(cls.__db__.url.dialect))
         await cls.__db__.execute(sql)
 
-    @classmethod
+    @ classmethod
     def _delete(cls, name_table: str, conditions: List[Condition], dialect: str):
         query_executor = get_dialect(dialect)
         conditions_str = ' and '.join(
             map(lambda condition: condition.get_condition(), conditions))
         return query_executor.delete_sql(name_table, conditions_str)
 
-    @classmethod
+    @ classmethod
     async def delete(cls, conditions: List[Condition]):
         try:
             sql = cls._delete(cls._get_name(), conditions,

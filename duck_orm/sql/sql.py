@@ -39,9 +39,17 @@ class QueryExecutor:
         return SELECT_TABLES_SQL
 
     @classmethod
-    def parser(cls, row: Mapping):
+    def parser(cls, row: Mapping, fields: List[str] = []):
         entity = {}
-        for key, value in row.items():
-            entity[key] = value
+        row = dict(row.items())
+        if (fields != []):
+            for field in fields:
+                if (row.__contains__(field)):
+                    entity[field] = row.get(field)
+                else:
+                    entity[field] = None
+        else:
+            for key, value in row.items():
+                entity[key] = value
 
         return entity

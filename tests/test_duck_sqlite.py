@@ -94,13 +94,30 @@ async def test_select_all_persons():
 
 
 @async_decorator
+async def test_select_all_excludes_persons():
+    persons = await Person.find_all(fields_excludes=['id', 'last_name', 'age'])
+    assert persons[0].id == None
+    assert persons[0].last_name == None
+    assert persons[0].first_name == 'Rich'
+    assert persons[0].age == None
+    assert persons[0].salary == 10000000
+
+
+@async_decorator
 async def test_sql_select_where_persons():
     sql = Person._get_select_sql(
         conditions=[
             Condition('first_name', '=', 'Rich')
         ]
     )
-    assert sql[0] == "SELECT id, age, first_name, id, last_name, salary FROM persons WHERE first_name = 'Rich';"
+    fields = sql[0].split('SELECT ')[1].split(' FROM ')[0]
+    assert fields.__contains__('id')
+    assert fields.__contains__('age')
+    assert fields.__contains__('first_name')
+    assert fields.__contains__('last_name')
+    assert fields.__contains__('salary')
+    assert sql[0] == "SELECT {fields} FROM persons WHERE first_name = 'Rich';".format(
+        fields=fields)
 
 
 @async_decorator
@@ -143,6 +160,16 @@ async def test_find_one():
         Condition('first_name', '=', 'Lucas')
     ])
     assert person != None
+    assert person.first_name == 'Lucas'
+    assert person.last_name == 'Lucas Andrade'
+
+
+@async_decorator
+async def test_find_like():
+    person = await Person.find_one(conditions=[
+        Condition('first_name', 'LIKE', 'LUCAS', True),
+        Condition('last_name', 'LIKE', 'lUcas aNdrade', True)
+    ])
     assert person.first_name == 'Lucas'
     assert person.last_name == 'Lucas Andrade'
 
