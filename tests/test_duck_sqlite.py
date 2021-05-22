@@ -115,6 +115,17 @@ async def test_select_where_persons():
 
 
 @async_decorator
+async def test_select_all_limit():
+    p = Person(first_name="Teste 1", last_name="First",
+               age=21, salary=20000000)
+    await p.save(p)
+    persons = await Person.find_all(limit=2)
+    assert len(persons) == 2
+    assert persons[0].first_name == 'Rich'
+    assert persons[1].first_name == 'Lucas'
+
+
+@async_decorator
 async def test_delete_person():
     await Person.delete(
         conditions=[
@@ -122,8 +133,7 @@ async def test_delete_person():
         ]
     )
     persons = await Person.find_all()
-    print(persons)
-    assert len(persons) == 1
+    assert len(persons) == 2
     assert persons[0].first_name == 'Lucas'
 
 
