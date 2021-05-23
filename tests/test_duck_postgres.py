@@ -176,5 +176,30 @@ async def test_find_one_not_found():
 
 
 @async_decorator
+async def test_update_sql():
+    person = await Person.find_one(conditions=[
+        Condition('first_name', '=', 'Teste 1')
+    ])
+    assert person.first_name == 'Teste 1'
+    p = await person.update(first_name='Teste 1 UPDATE', last_name='UPDATE')
+    assert p.id == 3
+    assert p.first_name == 'Teste 1 UPDATE'
+    assert p.last_name == 'UPDATE'
+
+
+@async_decorator
+async def test_update_sql_without_id():
+    person = await Person.find_one(fields_excludes=['id'], conditions=[
+        Condition('first_name', '=', 'Teste 1 UPDATE')
+    ])
+    assert person.first_name == 'Teste 1 UPDATE'
+    assert person.id == None
+    with pytest.raises(Exception):
+        p = await person.update(first_name='Teste 2 UPDATE', last_name='UPDATE 2')
+    assert person.first_name == 'Teste 1 UPDATE'
+    assert person.last_name == 'UPDATE'
+
+
+@async_decorator
 async def test_drop_table():
     await Person.drop_table()
