@@ -1,13 +1,11 @@
-from duck_orm.Exceptions.UpdateException import UpdateException
-from typing import Any, List, Tuple, Type, TypeVar, Union
+from typing import List, Tuple, Type, TypeVar, Union
 from databases import Database
 import inspect
 
-from sqlalchemy.sql.expression import text
-
+from duck_orm.sql.Condition import Condition
 from duck_orm.sql import fields as fields_type
 from duck_orm.utils.functions import get_dialect
-from duck_orm.sql.Condition import Condition
+from duck_orm.Exceptions.UpdateException import UpdateException
 
 T = TypeVar('T', bound='Model')
 
