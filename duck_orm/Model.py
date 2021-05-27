@@ -1,3 +1,4 @@
+from duck_orm.Exceptions.UpdateException import UpdateException
 from typing import Any, List, Tuple, Type, TypeVar, Union
 from databases import Database
 import inspect
@@ -149,8 +150,8 @@ class Model:
                 if field.primary_key and field.auto_increment:
                     field_id = name, self.__getattribute__(name)
 
-        if (field_id == None):
-            raise Exception(
+        if (field_id[1] == None):
+            raise UpdateException(
                 "Updating by ID requires that the object {self} has an ID field".format(self=self))
 
         condition = ['{field} = {value}'.format(

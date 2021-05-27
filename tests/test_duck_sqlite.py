@@ -6,6 +6,7 @@ import pytest
 from duck_orm.Model import Model
 from duck_orm.sql import fields as Field
 from duck_orm.sql.Condition import Condition
+from duck_orm.Exceptions.UpdateException import UpdateException
 
 db = Database('sqlite:///example.db')
 
@@ -201,7 +202,7 @@ async def test_update_sql_without_id():
     ])
     assert person.first_name == 'Teste 1 UPDATE'
     assert person.id == None
-    with pytest.raises(Exception):
+    with pytest.raises(UpdateException):
         p = await person.update(first_name='Teste 2 UPDATE', last_name='UPDATE 2')
     assert person.first_name == 'Teste 1 UPDATE'
     assert person.last_name == 'UPDATE'
