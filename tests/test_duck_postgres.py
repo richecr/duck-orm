@@ -6,6 +6,7 @@ import pytest
 from duck_orm.Model import Model
 from duck_orm.sql import fields as Field
 from duck_orm.sql.Condition import Condition
+from duck_orm.Exceptions.UpdateException import UpdateException
 
 db = Database('postgresql://postgres:arquinator2020@localhost:5432/orm')
 
@@ -173,6 +174,31 @@ async def test_find_one_not_found():
         Condition('first_name', '=', 'Rich')
     ])
     assert person == None
+
+
+@async_decorator
+async def test_update_sql():
+    person = await Person.find_one(conditions=[
+        Condition('first_name', '=', 'Teste 1')
+    ])
+    assert person.first_name == 'Teste 1'
+    p = await person.update(first_name='Teste 1 UPDATE', last_name='UPDATE')
+    assert p.id == 3
+    assert p.first_name == 'Teste 1 UPDATE'
+    assert p.last_name == 'UPDATE'
+
+
+@async_decorator
+async def test_update_sql_without_id():
+    person = await Person.find_one(fields_excludes=['id'], conditions=[
+        Condition('first_name', '=', 'Teste 1 UPDATE')
+    ])
+    assert person.first_name == 'Teste 1 UPDATE'
+    assert person.id == None
+    with pytest.raises(UpdateException):
+        p = await person.update(first_name='Teste 2 UPDATE', last_name='UPDATE 2')
+    assert person.first_name == 'Teste 1 UPDATE'
+    assert person.last_name == 'UPDATE'
 
 
 @async_decorator

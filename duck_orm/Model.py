@@ -1,10 +1,11 @@
-from typing import Any, List, Tuple, Type, TypeVar
+from typing import List, Tuple, Type, TypeVar, Union
 from databases import Database
 import inspect
 
+from duck_orm.sql.Condition import Condition
 from duck_orm.sql import fields as fields_type
 from duck_orm.utils.functions import get_dialect
-from duck_orm.sql.Condition import Condition
+from duck_orm.Exceptions.UpdateException import UpdateException
 
 T = TypeVar('T', bound='Model')
 
@@ -139,6 +140,40 @@ class Model:
         sql, values = model._get_insert_sql()
         cursor = await cls.__db__.execute(query=sql, values=values)
         model._instance['id'] = cursor
+
+    def _update_sql(self, fields: List[str]):
+        field_id: Union[Tuple[str, fields_type.Column], None] = None
+        for name, field in inspect.getmembers(self.__class__):
+            if isinstance(field, fields_type.Column):
+                if field.primary_key and field.auto_increment:
+                    field_id = name, self.__getattribute__(name)
+
+        if (field_id[1] == None):
+            raise UpdateException(
+                "Updating by ID requires that the object {self} has an ID field".format(self=self))
+
+        condition = ['{field} = {value}'.format(
+            field=field_id[0], value=field_id[1])]
+        query_executor = get_dialect(str(self.__db__.url.dialect))
+        sql = query_executor.update_sql(
+            self._get_name(), fields, conditions=condition)
+
+        return sql, field_id
+
+    async def update(self, **kwargs):
+        fields = []
+        values = {}
+        for name, value in kwargs.items():
+            fields_tmp = "{field} = :{field_bind_value}".format(
+                field=name, field_bind_value=name)
+            fields.append(fields_tmp)
+            values[name] = value
+
+        sql, field_id = self._update_sql(fields)
+        await self.__db__.execute(query=sql, values=values)
+        return await self.find_one(conditions=[
+            Condition(field_id[0], '=', field_id[1])
+        ])
 
     @ classmethod
     def _drop_table(cls, name_table: str, dialect: str):
