@@ -1,4 +1,7 @@
-from typing import Dict
+from typing import ClassVar, Generic, TypeVar
+from typing import Dict, Type
+
+from duck_orm.Model import Model
 from duck_orm.sql.sqlite import TYPES_SQL
 
 
@@ -84,3 +87,19 @@ class Varchar(Column, str):
     def column_sql(self, dialect: str):
         column_sql = super().column_sql(dialect)
         return column_sql.format(length=self.length)
+
+
+T = TypeVar('T')
+
+
+class ForeignKey(Column, Generic[T]):
+    def __new__(cls):
+        return super().__new__(cls)
+
+    def __init__(self, model: Model):
+        self.model = model
+        super().__init__('ForeignKey')
+
+    def sql(self):
+        column_sql = 'FOREIGN KEY ({name}) REFERENCES {name_table} ({field_name})'
+        return column_sql

@@ -43,17 +43,25 @@ class Model:
 
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
-                fields.append((name, field.column_sql(cls.__db__.url.dialect)))
+                if (isinstance(field, fields_type.ForeignKey)):
+                    name, field_key = field.model.get_id()
+                    fields.append(
+                        (name, field_key.column_sql(cls.__db__.url.dialect)))
+                    fields.append(('', field.sql().format(
+                        name=name, name_table=field.model._get_name(), field_name=name)))
+                else:
+                    fields.append(
+                        (name, field.column_sql(cls.__db__.url.dialect)))
 
         fields_config = [" ".join(field) for field in fields]
         query_executor = get_dialect(str(cls.__db__.url.dialect))
         return query_executor.create_sql(cls._get_name(), fields_config)
 
-    @classmethod
+    @ classmethod
     async def create(cls):
         return await cls.__db__.execute(cls._get_create_sql())
 
-    @classmethod
+    @ classmethod
     def get_fields_all(cls) -> List[str]:
         fields_all: List[str] = []
         for name, field in inspect.getmembers(cls):
@@ -62,7 +70,16 @@ class Model:
 
         return fields_all
 
-    @classmethod
+    @ classmethod
+    def get_id(cls):
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, fields_type.Column):
+                if (field.primary_key):
+                    return name, field
+
+        raise Exception('Model não tem chave primária')
+
+    @ classmethod
     def _get_select_sql(cls, fields_includes: List[str] = [], fields_excludes: List[str] = [], conditions: List[Condition] = [], limit: int = None):
         if fields_includes == []:
             fields_includes = cls.get_fields_all()
@@ -78,7 +95,7 @@ class Model:
             cls._get_name(), fields_includes, conditions_str, limit)
         return sql, fields_includes
 
-    @classmethod
+    @ classmethod
     async def find_all(cls: Type[T], fields_includes: List[str] = [], fields_excludes: List[str] = [], conditions: List[Condition] = [], limit: int = None):
         sql, fields_includes = cls._get_select_sql(
             fields_includes, fields_excludes, conditions, limit=limit)
