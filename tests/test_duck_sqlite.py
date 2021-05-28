@@ -54,11 +54,11 @@ def test_create_sql():
     sql = Person._get_create_sql()
     print(sql)
     assert sql == "CREATE TABLE IF NOT EXISTS persons (" + \
-        "age INTEGER, " + \
-        "first_name TEXT UNIQUE, " + \
-        "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " + \
+        "salary BIGINT, " + \
         "last_name TEXT NOT NULL, " + \
-        "salary BIGINT);"
+        "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " + \
+        "first_name TEXT UNIQUE, " + \
+        "age INTEGER);"
 
 
 def get_table(table, tables):

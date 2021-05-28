@@ -46,11 +46,11 @@ def test_model_class():
 def test_create_sql():
     sql = Person._get_create_sql()
     assert sql == "CREATE TABLE IF NOT EXISTS persons (" + \
-        "age INTEGER, " + \
-        "first_name TEXT UNIQUE, " + \
-        "id SERIAL PRIMARY KEY, " + \
+        "salary BIGINT, " + \
         "last_name TEXT NOT NULL, " + \
-        "salary BIGINT);"
+        "id SERIAL PRIMARY KEY, " + \
+        "first_name TEXT UNIQUE, " + \
+        "age INTEGER);"
 
 
 def get_table(table, tables):
@@ -60,7 +60,7 @@ def get_table(table, tables):
     return False
 
 
-@async_decorator
+@ async_decorator
 async def test_create_table():
     await db.connect()
     await Person.create()
@@ -68,7 +68,7 @@ async def test_create_table():
     assert get_table('persons', tables)
 
 
-@async_decorator
+@ async_decorator
 async def test_save_person():
     p = Person(first_name="Rich", last_name="Rich Ramalho",
                age=21, salary=10000000)
@@ -77,7 +77,7 @@ async def test_save_person():
     assert persons[0].first_name == 'Rich'
 
 
-@async_decorator
+@ async_decorator
 async def test_select_all_persons():
     p = Person(first_name="Lucas", last_name="Lucas Andrade",
                age=21, salary=20000000)
@@ -87,7 +87,7 @@ async def test_select_all_persons():
     assert persons[1].first_name == 'Lucas'
 
 
-@async_decorator
+@ async_decorator
 async def test_select_all_excludes_persons():
     persons = await Person.find_all(fields_excludes=['id', 'last_name', 'age'])
     assert persons[0].id == None
@@ -97,7 +97,7 @@ async def test_select_all_excludes_persons():
     assert persons[0].salary == 10000000
 
 
-@async_decorator
+@ async_decorator
 async def test_sql_select_where_persons():
     sql = Person._get_select_sql(
         conditions=[

@@ -1,8 +1,8 @@
-from typing import ClassVar, Generic, TypeVar
-from typing import Dict, Type
+from typing import Generic, TypeVar
+from typing import Dict
 
-from duck_orm.Model import Model
-from duck_orm.sql.sqlite import TYPES_SQL
+from duck_orm.sql.sqlite import TYPES_SQL as TYPES_SQL_LITE
+from duck_orm.sql.postgres import TYPES_SQL as TYPES_SQL_POSTGRES
 
 
 class Column:
@@ -15,9 +15,9 @@ class Column:
         self.type = type_column
         self.auto_increment = auto_increment
 
-    @property
-    def type_sql(cls) -> str:
-        return TYPES_SQL[cls.type]
+    def type_sql(self, dialect: str) -> str:
+        column_sql = self.get_dialect(dialect)[self.type]
+        return column_sql
 
     def column_sql(self, dialect: str) -> str:
         column_sql = self.get_dialect(dialect)[self.type]
@@ -37,11 +37,11 @@ class Column:
 
     def get_dialect(self, dialect: str) -> Dict[str, str]:
         if dialect == 'postgresql':
-            return TYPES_SQL
+            return TYPES_SQL_POSTGRES
         elif dialect == 'sqlite':
-            return TYPES_SQL
+            return TYPES_SQL_LITE
         else:
-            return TYPES_SQL
+            return TYPES_SQL_LITE
 
 
 class String(Column, str):
@@ -87,19 +87,3 @@ class Varchar(Column, str):
     def column_sql(self, dialect: str):
         column_sql = super().column_sql(dialect)
         return column_sql.format(length=self.length)
-
-
-T = TypeVar('T')
-
-
-class ForeignKey(Column, Generic[T]):
-    def __new__(cls):
-        return super().__new__(cls)
-
-    def __init__(self, model: Model):
-        self.model = model
-        super().__init__('ForeignKey')
-
-    def sql(self):
-        column_sql = 'FOREIGN KEY ({name}) REFERENCES {name_table} ({field_name})'
-        return column_sql

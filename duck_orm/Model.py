@@ -15,9 +15,7 @@ class Model:
     __db__: Database
 
     def __init__(self, **kwargs):
-        self._instance = {
-            'id': None
-        }
+        self._instance = {}
 
         for key, value in kwargs.items():
             self._instance[key] = value
@@ -43,15 +41,16 @@ class Model:
 
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
-                if (isinstance(field, fields_type.ForeignKey)):
-                    name, field_key = field.model.get_id()
+                from duck_orm.sql.relationship import ForeignKey
+                if (isinstance(field, ForeignKey)):
+                    name_relationship, field_relationship = field.model.get_id()
                     fields.append(
-                        (name, field_key.column_sql(cls.__db__.url.dialect)))
+                        (name, field_relationship.type_sql(cls.__db__.url.dialect)))
                     fields.append(('', field.sql().format(
-                        name=name, name_table=field.model._get_name(), field_name=name)))
+                        name=name, name_table=field.model._get_name(), field_name=name_relationship)))
                 else:
-                    fields.append(
-                        (name, field.column_sql(cls.__db__.url.dialect)))
+                    fields.insert(0,
+                                  (name, field.column_sql(cls.__db__.url.dialect)))
 
         fields_config = [" ".join(field) for field in fields]
         query_executor = get_dialect(str(cls.__db__.url.dialect))
