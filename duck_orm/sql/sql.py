@@ -3,6 +3,7 @@ from typing import List, Mapping
 SELECT_TABLES_SQL = "SELECT name FROM sqlite_master where type = 'table';"
 SELECT_TABLE_SQL = "SELECT {fields} FROM {table} WHERE {conditions};"
 SELECT_LIMIT_TABLE_SQL = "SELECT {fields} FROM {table} WHERE {conditions} LIMIT {limit};"
+SELECT_ID_ORDER_BY_SQL = "SELECT {name_id} FROM {table} ORDER BY {name_id} DESC LIMIT 1;"
 INSERT_INTO_SQL = "INSERT INTO {table}({fields_name}) VALUES({placeholders});"
 CREATE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"
 UPDATE_SQL = "UPDATE {table} SET {fields_values} WHERE {conditions};"
@@ -32,6 +33,10 @@ class QueryExecutor:
         if (limit != None):
             return SELECT_LIMIT_TABLE_SQL.format(limit=limit, table=name_table, fields=", ".join(fields), conditions=conditions)
         return SELECT_TABLE_SQL.format(table=name_table, fields=", ".join(fields), conditions=conditions)
+
+    @classmethod
+    def select_last_id(cls, name_id: str, table: str):
+        return SELECT_ID_ORDER_BY_SQL.format(name_id=name_id, table=table)
 
     @classmethod
     def delete_sql(cls, name_table: str, conditions: str):

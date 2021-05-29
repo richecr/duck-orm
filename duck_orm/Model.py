@@ -28,6 +28,9 @@ class Model:
             return _instance[key]
         return object.__getattribute__(self, key)
 
+    def __getitem__(self, key):
+        return getattr(self, key)
+
     @classmethod
     def _get_name(cls):
         if cls.__tablename__ == '':
@@ -142,7 +145,13 @@ class Model:
                 if field.primary_key and field.auto_increment:
                     continue
 
-                fields_values[name] = getattr(self, name)
+                value = getattr(self, name)
+                from duck_orm.sql.relationship import ForeignKey
+                if (isinstance(field, ForeignKey)):
+                    name_id_fk = field.model.get_id()[0]
+                    value = getattr(self, name)[name_id_fk]
+
+                fields_values[name] = value
                 fields_name.append(name)
                 placeholders.append(":{field}".format(field=name))
 
@@ -151,11 +160,27 @@ class Model:
             self._get_name(), fields_name, placeholders)
         return sql, fields_values
 
+    @classmethod
+    def _get_sql_last_inserted_id(cls):
+        name, _ = cls.get_id()
+        query_executor = get_dialect(str(cls.__db__.url.dialect))
+        sql = query_executor.select_last_id(name, cls._get_name())
+        return sql
+
+    async def _get_last_insert_id(self):
+        sql = self._get_sql_last_inserted_id()
+        return await self.__db__.fetch_one(sql)
+
     @ classmethod
-    async def save(cls, model):
+    async def save(cls, model: T):
         sql, values = model._get_insert_sql()
-        cursor = await cls.__db__.execute(query=sql, values=values)
-        model._instance['id'] = cursor
+        await cls.__db__.execute(query=sql, values=values)
+        data = await model._get_last_insert_id()
+        name, _ = cls.get_id()
+        if (data != None):
+            data = dict(data.items())
+            model._instance[name] = data[name]
+        return model
 
     def _update_sql(self, fields: List[str]):
         field_id: Union[Tuple[str, fields_type.Column], None] = None
