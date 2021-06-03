@@ -1,4 +1,4 @@
-from typing import List, Mapping
+from typing import Dict, List, Mapping
 
 SELECT_TABLES_SQL = "SELECT name FROM sqlite_master where type = 'table';"
 SELECT_TABLE_SQL = "SELECT {fields} FROM {table} WHERE {conditions};"
@@ -51,13 +51,15 @@ class QueryExecutor:
         return SELECT_TABLES_SQL
 
     @classmethod
-    def parser(cls, row: Mapping, fields: List[str] = []):
+    def parser(cls, row: Mapping, fields: List[str] = [], fields_foreign_key={}):
         entity = {}
-        row = dict(row.items())
         if (fields != []):
             for field in fields:
                 if (row.__contains__(field)):
-                    entity[field] = row.get(field)
+                    if field in fields_foreign_key.keys():
+                        entity[field] = fields_foreign_key.get(field)
+                    else:
+                        entity[field] = row.get(field)
                 else:
                     entity[field] = None
         else:

@@ -1,4 +1,4 @@
-from typing import List, Tuple, Type, TypeVar, Union
+from typing import Dict, List, Tuple, Type, TypeVar, Union
 from databases import Database
 import inspect
 
@@ -105,7 +105,21 @@ class Model:
         result: List[cls] = []
         dialect = get_dialect(str(cls.__db__.url.dialect))
         for row in data:
-            entity = dialect.parser(row, cls.get_fields_all())
+            row = dict(row.items())
+            fields_all: List[str] = []
+            fields_foreign_key: Dict[str, ForeignKey] = {}
+            for name, field in inspect.getmembers(cls):
+                if isinstance(field, fields_type.Column):
+                    fields_all.append(name)
+                    from duck_orm.sql.relationship import ForeignKey
+                    if isinstance(field, ForeignKey):
+                        field_id = field.model.get_id()[0]
+                        model_entity: Type[field.model] = await field.model.find_one(conditions=[
+                            Condition(field_id, '=', row[name])
+                        ])
+                        fields_foreign_key[name] = model_entity
+
+            entity = dialect.parser(row, fields_all, fields_foreign_key)
             result.append(cls(**entity))
 
         return result
@@ -119,6 +133,7 @@ class Model:
         entity = None
         result: cls = None
         if (data != None):
+            data = dict(data.items())
             entity = dialect.parser(data, cls.get_fields_all())
             result: cls = cls(**entity)
         return result
@@ -130,6 +145,7 @@ class Model:
         data = await cls.__db__.fetch_all(sql)
         result: List = []
         for row in data:
+            row = dict(row.items())
             entity = query_executor.parser(row)
             result.append(entity)
 

@@ -7,7 +7,7 @@ class ForeignKey(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, model: Type[Model]):
+    def __init__(self, model: Model):
         self.model = model
         super().__init__('ForeignKey')
 
