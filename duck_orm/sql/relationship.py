@@ -1,13 +1,14 @@
+from typing import Type
+
 from duck_orm.Model import Model
 from duck_orm.sql.fields import Column
-from typing import Type
 
 
 class ForeignKey(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, model: Model):
+    def __init__(self, model: Type[Model]):
         self.model = model
         super().__init__('ForeignKey')
 

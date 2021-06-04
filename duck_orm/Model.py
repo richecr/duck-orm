@@ -114,7 +114,7 @@ class Model:
                     from duck_orm.sql.relationship import ForeignKey
                     if isinstance(field, ForeignKey):
                         field_id = field.model.get_id()[0]
-                        model_entity: Type[field.model] = await field.model.find_one(conditions=[
+                        model_entity = await field.model.find_one(conditions=[
                             Condition(field_id, '=', row[name])
                         ])
                         fields_foreign_key[name] = model_entity
