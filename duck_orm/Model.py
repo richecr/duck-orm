@@ -1,6 +1,6 @@
-from typing import Dict, List, Tuple, Type, TypeVar, Union
-from databases import Database
 import inspect
+from databases import Database
+from typing import Dict, List, Tuple, Type, TypeVar, Union
 
 from duck_orm.sql.Condition import Condition
 from duck_orm.sql import fields as fields_type
@@ -44,11 +44,17 @@ class Model:
 
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
-                from duck_orm.sql.relationship import ForeignKey
-                if (isinstance(field, ForeignKey)):
+                from duck_orm.sql.relationship import OneToMany, OneToOne
+                if (isinstance(field, OneToMany)):
                     name_relationship, field_relationship = field.model.get_id()
                     fields.append(
                         (name, field_relationship.type_sql(cls.__db__.url.dialect)))
+                    fields.append(('', field.sql().format(
+                        name=name, name_table=field.model._get_name(), field_name=name_relationship)))
+                elif (isinstance(field, OneToOne)):
+                    name_relationship, field_relationship = field.model.get_id()
+                    fields.append(
+                        (name, field_relationship.column_sql(cls.__db__.url.dialect)))
                     fields.append(('', field.sql().format(
                         name=name, name_table=field.model._get_name(), field_name=name_relationship)))
                 else:
@@ -107,12 +113,12 @@ class Model:
         for row in data:
             row = dict(row.items())
             fields_all: List[str] = []
-            fields_foreign_key: Dict[str, ForeignKey] = {}
+            fields_foreign_key: Dict[str, OneToMany] = {}
             for name, field in inspect.getmembers(cls):
                 if isinstance(field, fields_type.Column):
                     fields_all.append(name)
-                    from duck_orm.sql.relationship import ForeignKey
-                    if isinstance(field, ForeignKey):
+                    from duck_orm.sql.relationship import OneToMany
+                    if isinstance(field, OneToMany):
                         field_id = field.model.get_id()[0]
                         model_entity = await field.model.find_one(conditions=[
                             Condition(field_id, '=', row[name])
@@ -162,8 +168,8 @@ class Model:
                     continue
 
                 value = getattr(self, name)
-                from duck_orm.sql.relationship import ForeignKey
-                if (isinstance(field, ForeignKey)):
+                from duck_orm.sql.relationship import OneToMany, OneToOne
+                if isinstance(field, OneToMany) or isinstance(field, OneToOne):
                     name_id_fk = field.model.get_id()[0]
                     value = getattr(self, name)[name_id_fk]
 
