@@ -1,3 +1,6 @@
+from duck_orm.Exceptions.OperatorException import OperatorException
+
+
 class Operator:
     operator: str
 
@@ -16,3 +19,6 @@ class Operator:
             self.operator = 'NOT IN'
         elif operator == 'IN':
             self.operator = 'IN'
+        else:
+            raise OperatorException(
+                "Operator: {op} is invalid.".format(op=operator))

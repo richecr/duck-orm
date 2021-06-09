@@ -1,4 +1,3 @@
-from typing import Generic, TypeVar
 from typing import Dict
 
 from duck_orm.sql.sqlite import TYPES_SQL as TYPES_SQL_LITE
