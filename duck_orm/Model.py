@@ -20,7 +20,10 @@ class Model:
         for key, value in kwargs.items():
             self._instance[key] = value
 
-        self.type_ = self.__class__
+        for name, field in inspect.getmembers(self.__class__):
+            from duck_orm.sql.relationship import OneToMany
+            if isinstance(field, OneToMany):
+                field.model_ = self
 
     def __getattribute__(self, key: str):
         _instance = object.__getattribute__(self, '_instance')
@@ -32,19 +35,43 @@ class Model:
         return getattr(self, key)
 
     @classmethod
+    def relationships(cls):
+        pass
+
+    @classmethod
+    async def associations(cls):
+        sqls: list[str] = []
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, fields_type.Column):
+                from duck_orm.sql.relationship import OneToMany
+                if (isinstance(field, OneToMany)):
+                    name_relationship, field_relationship = field.model.get_id()
+                    sqls.append(field.sql_column(field_relationship.type_sql(
+                        cls.__db__.url.dialect)).format(name=field.name_in_person))
+                    sql = field.sql().format(
+                        name=field.name_in_person, name_table=cls._get_name(), field_name=cls.get_id()[0])
+                    sqls.append(sql)
+
+        for sql in sqls:
+            print(sql)
+            await cls.__db__.execute(sql)
+
+    @ classmethod
     def _get_name(cls):
         if cls.__tablename__ == '':
             return cls.__name__.lower()
 
         return cls.__tablename__
 
-    @classmethod
+    @ classmethod
     def _get_create_sql(cls):
         fields: List[Tuple[str, str]] = []
 
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
-                from duck_orm.sql.relationship import OneToMany, OneToOne
+                from duck_orm.sql.relationship import OneToMany, ManyToOne, OneToOne
+                if (isinstance(field, ManyToOne)):
+                    continue
                 if (isinstance(field, OneToMany)):
                     name_relationship, field_relationship = field.model.get_id()
                     fields.append(
@@ -67,7 +94,8 @@ class Model:
 
     @ classmethod
     async def create(cls):
-        return await cls.__db__.execute(cls._get_create_sql())
+        sql = cls._get_create_sql()
+        return await cls.__db__.execute(sql)
 
     @ classmethod
     def get_fields_all(cls) -> List[str]:
@@ -117,7 +145,7 @@ class Model:
             for name, field in inspect.getmembers(cls):
                 if isinstance(field, fields_type.Column):
                     fields_all.append(name)
-                    from duck_orm.sql.relationship import OneToMany
+                    from duck_orm.sql.relationship import OneToMany, ManyToOne
                     if isinstance(field, OneToMany):
                         field_id = field.model.get_id()[0]
                         model_entity = await field.model.find_one(conditions=[
@@ -162,20 +190,15 @@ class Model:
         placeholders = []
         fields_values = {}
 
-        for name, field in inspect.getmembers(self.__class__):
-            if isinstance(field, fields_type.Column):
-                if field.primary_key and field.auto_increment:
-                    continue
+        for name, field in self._instance.items():
+            value = self[name]
+            if isinstance(field, Model):
+                name_id_fk = field.get_id()[0]
+                value = self[name][name_id_fk]
 
-                value = getattr(self, name)
-                from duck_orm.sql.relationship import OneToMany, OneToOne
-                if isinstance(field, OneToMany) or isinstance(field, OneToOne):
-                    name_id_fk = field.model.get_id()[0]
-                    value = getattr(self, name)[name_id_fk]
-
-                fields_values[name] = value
-                fields_name.append(name)
-                placeholders.append(":{field}".format(field=name))
+            fields_values[name] = value
+            fields_name.append(name)
+            placeholders.append(":{field}".format(field=name))
 
         query_executor = get_dialect(str(self.__db__.url.dialect))
         sql = query_executor.insert_sql(
