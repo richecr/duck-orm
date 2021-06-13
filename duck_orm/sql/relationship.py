@@ -9,10 +9,13 @@ class OneToMany(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, model: Type[Model], name_in_person: str):
+    def __init__(self, model: Type[Model], name_in_person: str, name_relation: str):
         self.model = model
         self.name_in_person = name_in_person
-        self.model_ = None
+        self.model_: Type[Model] = None
+        if not name_relation:
+            raise Exception('Attribute name_relation is mandatory')
+        self.name_relation = name_relation
         super().__init__('OneToMany')
 
     async def add(self, model: Type[Model]):
@@ -26,13 +29,13 @@ class OneToMany(Column):
         ])
 
     def sql_column(self, type_sql: str):
-        sql = 'ALTER TABLE ' + self.model._get_name() + \
+        sql = 'ALTER TABLE ' + self.model.get_name() + \
             ' ADD {name} ' + type_sql
         return sql
 
     def sql(self):
-        column_sql = 'ALTER TABLE ' + self.model._get_name() + \
-            ' ADD CONSTRAINT person_city' + \
+        column_sql = 'ALTER TABLE ' + self.model.get_name() + \
+            ' ADD CONSTRAINT ' + self.name_relation + \
             ' FOREIGN KEY ({name}) REFERENCES {name_table} ({field_name})'
         return column_sql
 
@@ -43,7 +46,7 @@ class ManyToOne(Column):
 
     def __init__(self, model: Type[Model]):
         self.model = model
-        super().__init__('ManyToOne')
+        super().__init__('OneToMany')
 
 
 class OneToOne(Column):

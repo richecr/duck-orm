@@ -5,7 +5,7 @@ import pytest
 
 from duck_orm.Model import Model
 from duck_orm.sql import fields as Field
-from duck_orm.sql.relationship import OneToOne, OneToMany
+from duck_orm.sql.relationship import ManyToOne, OneToOne, OneToMany
 
 db = Database('postgresql://postgres:arquinator2020@localhost:5432/orm')
 
@@ -18,6 +18,9 @@ class City(Model):
         primary_key=True, auto_increment=True)
     name: str = Field.String(unique=True)
 
+    def relationships(self):
+        self.persons = OneToMany(model=Person, name_in_person='city')
+
 
 class Person(Model):
     __tablename__ = 'persons'
@@ -29,15 +32,15 @@ class Person(Model):
     last_name: str = Field.String(not_null=True)
     age: int = Field.BigInteger(min_value=18)
     salary: int = Field.BigInteger()
-    city: City = OneToMany(model=City)
+    city: City = ManyToOne(model=City)
 
 
-class Contact(Model):
-    __tablename__ = 'contacts'
-    __db__ = db
+# class Contact(Model):
+#     __tablename__ = 'contacts'
+#     __db__ = db
 
-    id_person: Person = OneToOne(model=Person)
-    phone: str = Field.String(not_null=True)
+#     id_person: Person = OneToOne(model=Person)
+#     phone: str = Field.String(not_null=True)
 
 
 # Creating instances of Cities.
@@ -48,14 +51,16 @@ city_kh = City(name="Konoha")
 person_1 = Person(first_name="Rich", last_name="Ramalho",
                   age=22, salary=1250, city=city_cg)
 person_2 = Person(first_name="Elton", last_name="Ramalho",
-                  age=22, salary=1250, city=city_cg)
+                  age=22, salary=1250)
 person_3 = Person(first_name="Naruto", last_name="Uzumaki",
-                  age=16, salary=500000, city=city_kh)
+                  age=16, salary=500000)
+person_4 = Person(first_name="Hinata", last_name="Hyuga",
+                  age=16, salary=500000)
 
 # Creating instances of Contacts.
-contact_person_1 = Contact(phone="XXXXXXXXX-XXXX", id_person=person_1)
-contact_person_2 = Contact(phone="YYYYYYYYY-YYYY", id_person=person_2)
-contact_error = Contact(phone="YYYYYYYYY-YYYY", id_person=person_2)
+# contact_person_1 = Contact(phone="XXXXXXXXX-XXXX", id_person=person_1)
+# contact_person_2 = Contact(phone="YYYYYYYYY-YYYY", id_person=person_2)
+# contact_error = Contact(phone="YYYYYYYYY-YYYY", id_person=person_2)
 
 
 def async_decorator(func):
@@ -75,13 +80,13 @@ def async_decorator(func):
 def test_model_class():
     assert City._get_name() == 'cities'
     assert Person._get_name() == 'persons'
-    assert Contact._get_name() == 'contacts'
-    assert isinstance(Contact.id_person, OneToOne)
+    # assert Contact._get_name() == 'contacts'
+    # assert isinstance(Contact.id_person, OneToOne)
     assert isinstance(Person.city, OneToMany)
 
 
 def test_create_sql():
-    sql = Person._get_create_sql()
+    sql = Person.__get_create_sql()
     assert sql == "CREATE TABLE IF NOT EXISTS persons (" + \
         "salary BIGINT, " + \
         "last_name TEXT NOT NULL, " + \
