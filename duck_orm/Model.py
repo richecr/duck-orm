@@ -44,10 +44,16 @@ class Model:
         sqls: list[str] = []
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
-                from duck_orm.sql.relationship import OneToMany
+                from duck_orm.sql.relationship import OneToMany, OneToOne
                 if (isinstance(field, OneToMany)):
-                    sql = field.sql().format(
-                        name=field.name_in_person, name_table=cls.get_name(), field_name=cls.get_id()[0])
+                    sql = field.sql().format(name=field.name_in_person,
+                                             name_table=cls.get_name(), field_name=cls.get_id()[0])
+                    sqls.append(sql)
+
+                elif isinstance(field, OneToOne):
+                    name_relationship, _ = field.model.get_id()
+                    sql = field.sql().format(table=cls.get_name(),
+                                             name_table=field.model.get_name(), field_name=name_relationship)
                     sqls.append(sql)
 
         for sql in sqls:

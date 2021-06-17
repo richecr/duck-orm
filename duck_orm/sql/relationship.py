@@ -53,10 +53,20 @@ class OneToOne(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, model: Type[Model]):
+    def __init__(self, model: Type[Model], name_relation: str, field: str):
         self.model = model
+        if not name_relation:
+            raise Exception('Attribute name_relation is mandatory')
+        if not field:
+            raise Exception('Attribute field is mandatory')
+        self.name_relation = name_relation
+        self.field = field
         super().__init__('OneToOne', primary_key=True)
 
-    def sql(self):
-        column_sql = 'FOREIGN KEY ({name}) REFERENCES {name_table} ({field_name})'
+    def sql(self) -> str:
+        column_sql = 'ALTER TABLE {table}' + \
+            ' ADD CONSTRAINT ' + self.name_relation + \
+            ' FOREIGN KEY (' + self.field + \
+            ') REFERENCES {name_table} ({field_name})'
+
         return column_sql
