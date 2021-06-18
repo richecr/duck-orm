@@ -46,7 +46,7 @@ class Model:
             if isinstance(field, fields_type.Column):
                 from duck_orm.sql.relationship import OneToMany, OneToOne
                 if (isinstance(field, OneToMany)):
-                    sql = field.sql().format(name=field.name_in_person,
+                    sql = field.sql().format(name=field.name_in_table_fk,
                                              name_table=cls.get_name(), field_name=cls.get_id()[0])
                     sqls.append(sql)
 
@@ -72,8 +72,14 @@ class Model:
 
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
-                from duck_orm.sql.relationship import OneToMany, ManyToOne, OneToOne
-                if (isinstance(field, ManyToOne)):
+                from duck_orm.sql.relationship import OneToMany, ManyToOne, OneToOne, ForeignKey
+                if (isinstance(field, ForeignKey)):
+                    name_relationship, field_relationship = field.model.get_id()
+                    fields.append(
+                        (name, field_relationship.type_sql(cls.__db__.url.dialect)))
+                    fields.append(('', field.sql().format(
+                        name=name, name_table=field.model.get_name(), field_name=name_relationship)))
+                elif (isinstance(field, ManyToOne)):
                     field_relationship = field.model.get_id()[1]
                     fields.append(
                         (name, field_relationship.type_sql(cls.__db__.url.dialect)))
