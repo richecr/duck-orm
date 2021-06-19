@@ -98,33 +98,33 @@ class ManyToMany(Column):
         self.model_relation = model_relation
         super().__init__('ManyToMany')
 
-    async def add(self, model_instance: Model, model_instance_: Model):
+    async def add(self, model_instance_one: Model, model_instance_two: Model):
         # TODO: Validation:
-        #           - Check if model_instance and model_instance_ were
+        #           - Check if model_instance_one and model_instance_two were
         #             persisted in the database.
         model_dict: Dict[str, Any] = {}
         for name, field in inspect.getmembers(self.model_relation):
             if (isinstance(field, ForeignKey)) and not field.primary_key:
-                if isinstance(model_instance, field.model):
-                    name_field = model_instance.get_id()[0]
-                    model_dict[name] = model_instance[name_field]
-                elif isinstance(model_instance_, field.model):
-                    name_field = model_instance_.get_id()[0]
-                    model_dict[name] = model_instance_[name_field]
+                if isinstance(model_instance_one, field.model):
+                    name_field = model_instance_one.get_id()[0]
+                    model_dict[name] = model_instance_one[name_field]
+                elif isinstance(model_instance_two, field.model):
+                    name_field = model_instance_two.get_id()[0]
+                    model_dict[name] = model_instance_two[name_field]
 
         model_save = self.model_relation(**model_dict)
         return await self.model_relation.save(model_save)
 
-    async def add(self, model_instance: Model):
+    async def add(self, model_instance_one: Model):
         # TODO: Validation:
-        #           - Check if model_instance and model_instance_ were
+        #           - Check if model_instance_one were
         #             persisted in the database.
         model_dict: Dict[str, Any] = {}
         for name, field in inspect.getmembers(self.model_relation):
             if (isinstance(field, ForeignKey)) and not field.primary_key:
-                if isinstance(model_instance, field.model):
-                    name_field = model_instance.get_id()[0]
-                    model_dict[name] = model_instance[name_field]
+                if isinstance(model_instance_one, field.model):
+                    name_field = model_instance_one.get_id()[0]
+                    model_dict[name] = model_instance_one[name_field]
                 elif isinstance(self.model_, field.model):
                     name_field = self.model_.get_id()[0]
                     model_dict[name] = self.model_[name_field]
