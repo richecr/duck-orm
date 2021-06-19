@@ -1,5 +1,6 @@
+import inspect
 from duck_orm.sql.Condition import Condition
-from typing import Type
+from typing import Any, Dict, Type
 
 from duck_orm.Model import Model
 from duck_orm.sql.fields import Column
@@ -91,18 +92,45 @@ class ManyToMany(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, model: Type[Model], model_: str,
-                 name_in_table_fk: str, name_in_table_fk_: str):
+    def __init__(self, model: Type[Model], model_relation: Type[Model]):
         self.model = model
-        self.model_ = model_
         self.model_: Type[Model] = None
-        self.name_in_table_fk = name_in_table_fk
-        self.name_in_table_fk_ = name_in_table_fk_
+        self.model_relation = model_relation
         super().__init__('ManyToMany')
 
-    async def add(self, model: Type[Model]):
-        model._instance[self.name_in_table_fk] = self.model_
-        return await self.model.save(model)
+    async def add(self, model_instance: Model, model_instance_: Model):
+        # TODO: Validation:
+        #           - Check if model_instance and model_instance_ were
+        #             persisted in the database.
+        model_dict: Dict[str, Any] = {}
+        for name, field in inspect.getmembers(self.model_relation):
+            if (isinstance(field, ForeignKey)) and not field.primary_key:
+                if isinstance(model_instance, field.model):
+                    name_field = model_instance.get_id()[0]
+                    model_dict[name] = model_instance[name_field]
+                elif isinstance(model_instance_, field.model):
+                    name_field = model_instance_.get_id()[0]
+                    model_dict[name] = model_instance_[name_field]
+
+        model_save = self.model_relation(**model_dict)
+        return await self.model_relation.save(model_save)
+
+    async def add(self, model_instance: Model):
+        # TODO: Validation:
+        #           - Check if model_instance and model_instance_ were
+        #             persisted in the database.
+        model_dict: Dict[str, Any] = {}
+        for name, field in inspect.getmembers(self.model_relation):
+            if (isinstance(field, ForeignKey)) and not field.primary_key:
+                if isinstance(model_instance, field.model):
+                    name_field = model_instance.get_id()[0]
+                    model_dict[name] = model_instance[name_field]
+                elif isinstance(self.model_, field.model):
+                    name_field = self.model_.get_id()[0]
+                    model_dict[name] = self.model_[name_field]
+
+        model_save = self.model_relation(**model_dict)
+        return await self.model_relation.save(model_save)
 
     async def get_all(self):
         return await self.model.find_all(conditions=[

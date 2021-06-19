@@ -16,14 +16,15 @@ class Model:
 
     def __init__(self, **kwargs):
         self._instance = {}
-
+        self.relationships()
         for key, value in kwargs.items():
             self._instance[key] = value
 
         for name, field in inspect.getmembers(self.__class__):
-            from duck_orm.sql.relationship import OneToMany
-            if isinstance(field, OneToMany):
-                field.model_ = self
+            from duck_orm.sql.relationship import OneToMany, ManyToMany
+            if isinstance(field, OneToMany) or isinstance(field, ManyToMany):
+                self.__setattr__(name, field)
+                self[name].model_ = self
 
     def __getattribute__(self, key: str):
         _instance = object.__getattribute__(self, '_instance')
