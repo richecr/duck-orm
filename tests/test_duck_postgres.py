@@ -3,10 +3,10 @@ import functools
 import asyncio
 import pytest
 
-from duck_orm.Model import Model
+from duck_orm.model import Model
 from duck_orm.sql import fields as Field
-from duck_orm.sql.Condition import Condition
-from duck_orm.Exceptions.UpdateException import UpdateException
+from duck_orm.sql.condition import Condition
+from duck_orm.exceptions import UpdateException
 
 db = Database('postgresql://postgres:arquinator2020@localhost:5432/orm')
 
@@ -38,7 +38,7 @@ def async_decorator(func):
 
 
 def test_model_class():
-    assert Person._get_name() == 'persons'
+    assert Person.get_name() == 'persons'
     assert isinstance(Person.first_name, Field.String)
     assert issubclass(Person, Model)
 
@@ -90,10 +90,10 @@ async def test_select_all_persons():
 @ async_decorator
 async def test_select_all_excludes_persons():
     persons = await Person.find_all(fields_excludes=['id', 'last_name', 'age'])
-    assert persons[0].id == None
-    assert persons[0].last_name == None
+    assert persons[0].id is None
+    assert persons[0].last_name is None
     assert persons[0].first_name == 'Rich'
-    assert persons[0].age == None
+    assert persons[0].age is None
     assert persons[0].salary == 10000000
 
 
@@ -110,8 +110,9 @@ async def test_sql_select_where_persons():
     assert fields.__contains__('first_name')
     assert fields.__contains__('last_name')
     assert fields.__contains__('salary')
-    assert sql[0] == "SELECT {fields} FROM persons WHERE first_name = 'Rich';".format(
+    msg = "SELECT {fields} FROM persons WHERE first_name = 'Rich';".format(
         fields=fields)
+    assert sql[0] == msg
 
 
 @async_decorator
@@ -173,7 +174,7 @@ async def test_find_one_not_found():
     person = await Person.find_one(conditions=[
         Condition('first_name', '=', 'Rich')
     ])
-    assert person == None
+    assert person is None
 
 
 @async_decorator
@@ -194,7 +195,7 @@ async def test_update_sql_without_id():
         Condition('first_name', '=', 'Teste 1 UPDATE')
     ])
     assert person.first_name == 'Teste 1 UPDATE'
-    assert person.id == None
+    assert person.id is None
     with pytest.raises(UpdateException):
         p = await person.update(first_name='Teste 2 UPDATE', last_name='UPDATE 2')
     assert person.first_name == 'Teste 1 UPDATE'

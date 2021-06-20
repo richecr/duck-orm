@@ -18,8 +18,10 @@ class City(Model):
         primary_key=True, auto_increment=True)
     name: str = Field.String(unique=True)
 
-    def relationships(self):
-        self.persons = OneToMany(model=Person, name_in_person='city')
+    @classmethod
+    def relationships(cls):
+        cls.persons = OneToMany(
+            model=Person, name_in_table_fk='city', name_relation='person_city')
 
 
 class Person(Model):
@@ -35,12 +37,12 @@ class Person(Model):
     city: City = ManyToOne(model=City)
 
 
-# class Contact(Model):
-#     __tablename__ = 'contacts'
-#     __db__ = db
+class Contact(Model):
+    __tablename__ = 'contacts'
+    __db__ = db
 
-#     id_person: Person = OneToOne(model=Person)
-#     phone: str = Field.String(not_null=True)
+    id_person: Person = OneToOne(model=Person)
+    phone: str = Field.String(not_null=True)
 
 
 # Creating instances of Cities.

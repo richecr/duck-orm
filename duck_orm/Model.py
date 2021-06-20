@@ -2,10 +2,10 @@ from typing import Dict, List, Tuple, Type, TypeVar
 from databases import Database
 import inspect
 
-from duck_orm.sql.Condition import Condition
-from duck_orm.sql import fields as fields_type
 from duck_orm.utils.functions import get_dialect
-from duck_orm.Exceptions.UpdateException import UpdateException
+from duck_orm.exceptions import UpdateException
+from duck_orm.sql import fields as fields_type
+from duck_orm.sql.condition import Condition
 
 T = TypeVar('T', bound='Model')
 
@@ -72,7 +72,7 @@ class Model:
         return cls.__tablename__
 
     @ classmethod
-    def __get_create_sql(cls):
+    def _get_create_sql(cls):
         fields: List[Tuple[str, str]] = []
 
         for name, field in inspect.getmembers(cls):
@@ -90,21 +90,18 @@ class Model:
                 elif (isinstance(field, ManyToOne)):
                     field_relationship = field.model.get_id()[1]
                     fields.append(
-                        (name, field_relationship.type_sql(
-                            dialect)))
+                        (name, field_relationship.type_sql(dialect)))
                 elif (isinstance(field, OneToMany)):
                     field_name, field = field.model.get_id()
                     fields.append(
-                        (name, field.type_sql(
-                            dialect)))
+                        (name, field.type_sql(dialect)))
                     fields.append(('', field.sql(dialect,
                                                  name, field.model.get_name(),
                                                  field_name)))
                 elif (isinstance(field, OneToOne)):
                     field_name, field = field.model.get_id()
                     fields.append(
-                        (name, field.column_sql(
-                            dialect)))
+                        (name, field.column_sql(dialect)))
                     fields.append(
                         ('',
                          field.sql().format(
@@ -113,8 +110,7 @@ class Model:
                              field_name=field_name)))
                 else:
                     fields.insert(
-                        0, (name, field.column_sql(
-                            dialect)))
+                        0, (name, field.column_sql(dialect)))
 
         fields_config = [" ".join(field) for field in fields]
         query_executor = get_dialect(str(dialect))
@@ -122,7 +118,7 @@ class Model:
 
     @ classmethod
     async def create(cls):
-        sql = cls.__get_create_sql()
+        sql = cls._get_create_sql()
         return await cls.__db__.execute(sql)
 
     @ classmethod
@@ -146,7 +142,7 @@ class Model:
         raise Exception('Model não tem chave primária')
 
     @ classmethod
-    def __get_select_sql(
+    def _get_select_sql(
             cls,
             fields_includes: List[str] = [],
             fields_excludes: List[str] = [],
@@ -175,7 +171,7 @@ class Model:
         conditions: List[Condition] = [],
         limit: int = None
     ):
-        sql, fields_includes = cls.__get_select_sql(
+        sql, fields_includes = cls._get_select_sql(
             fields_includes, fields_excludes, conditions, limit=limit)
         data = await cls.__db__.fetch_all(sql)
         result: List[cls] = []
@@ -207,7 +203,7 @@ class Model:
         fields_excludes: List[str] = [],
         conditions: List[Condition] = []
     ):
-        sql, fields_includes = cls.__get_select_sql(
+        sql, fields_includes = cls._get_select_sql(
             fields_includes, fields_excludes, conditions, limit=1)
         data = await cls.__db__.fetch_one(sql)
         dialect = get_dialect(str(cls.__db__.url.dialect))
@@ -275,7 +271,7 @@ class Model:
         return model
 
     def __update_sql(self, fields: List[str]):
-        field_name_id = self.get_id()[1]
+        field_name_id = self.get_id()[0]
         field_id = self[field_name_id]
 
         if (field_id is None):
@@ -289,7 +285,7 @@ class Model:
         sql = query_executor.update_sql(
             self.get_name(), fields, conditions=condition)
 
-        return sql, field_id
+        return sql, field_name_id, field_id
 
     async def update(self, **kwargs):
         fields = []
@@ -300,10 +296,10 @@ class Model:
             fields.append(fields_tmp)
             values[name] = value
 
-        sql, field_id = self.__update_sql(fields)
+        sql, field_name_id, field_id = self.__update_sql(fields)
         await self.__db__.execute(query=sql, values=values)
         return await self.find_one(conditions=[
-            Condition(field_id[0], '=', field_id[1])
+            Condition(field_name_id, '=', field_id)
         ])
 
     @ classmethod

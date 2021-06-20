@@ -1,9 +1,9 @@
 import inspect
 from typing import Any, Dict, Type
 
-from duck_orm.Model import Model
+from duck_orm.model import Model
 from duck_orm.sql.fields import Column
-from duck_orm.sql.Condition import Condition
+from duck_orm.sql.condition import Condition
 from duck_orm.utils.functions import get_dialect
 
 

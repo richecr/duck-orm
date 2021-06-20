@@ -1,4 +1,4 @@
-from duck_orm.Exceptions.OperatorException import OperatorException
+from duck_orm.exceptions import OperatorException
 
 
 class Operator:

@@ -1,7 +1,7 @@
 from typing import List, Union
 
-from duck_orm.sql.Operator import Operator
-from duck_orm.Exceptions.OperatorException import OperatorException
+from duck_orm.sql.operator import Operator
+from duck_orm.exceptions import OperatorException
 
 
 class Condition:
