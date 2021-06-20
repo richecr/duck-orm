@@ -1,9 +1,10 @@
 import inspect
-from duck_orm.sql.Condition import Condition
 from typing import Any, Dict, Type
 
 from duck_orm.Model import Model
 from duck_orm.sql.fields import Column
+from duck_orm.sql.Condition import Condition
+from duck_orm.utils.functions import get_dialect
 
 
 class ForeignKey(Column):
@@ -15,17 +16,26 @@ class ForeignKey(Column):
         self.name_in_table_fk = name_in_table_fk
         super().__init__('ForeignKey')
 
-    def sql(self) -> str:
-        column_sql = 'FOREIGN KEY ({name}) REFERENCES ' + \
-            self.model.get_name() + ' (' + self.name_in_table_fk + ')'
-        return column_sql
+    def sql(self, dialect: str, name: str) -> str:
+        generator_sql = get_dialect(dialect)
+        sql = generator_sql.add_foreing_key_column(
+            name,
+            self.model.get_name(),
+            self.name_in_table_fk
+        )
+        return sql
 
 
 class OneToMany(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, model: Type[Model], name_in_table_fk: str, name_relation: str):
+    def __init__(
+            self,
+            model: Type[Model],
+            name_in_table_fk: str,
+            name_relation: str
+    ) -> None:
         self.model = model
         self.name_in_table_fk = name_in_table_fk
         self.model_: Type[Model] = None
@@ -44,16 +54,20 @@ class OneToMany(Column):
                       self.model_[self.model_.get_id()[0]])
         ])
 
-    def sql_column(self, type_sql: str):
-        sql = 'ALTER TABLE ' + self.model.get_name() + \
-            ' ADD {name} ' + type_sql
+    def sql_column(self, dialect: str, name: str, type_sql: str):
+        generator_sql = get_dialect(dialect)
+        sql = generator_sql.alter_table_add_column(
+            self.model.get_name(), name, type_sql
+        )
         return sql
 
-    def sql(self):
-        column_sql = 'ALTER TABLE ' + self.model.get_name() + \
-            ' ADD CONSTRAINT ' + self.name_relation + \
-            ' FOREIGN KEY ({name}) REFERENCES {name_table} ({field_name})'
-        return column_sql
+    def sql(self, dialect: str, field_name: str,
+            table_relation: str, field: str):
+        generator_sql = get_dialect(dialect)
+        sql = generator_sql.alter_table_add_constraint(
+            self.model.get_name(), self.name_relation, field_name,
+            table_relation, field)
+        return sql
 
 
 class ManyToOne(Column):
@@ -98,7 +112,8 @@ class ManyToMany(Column):
         self.model_relation = model_relation
         super().__init__('ManyToMany')
 
-    async def add(self, model_instance_one: Model, model_instance_two: Model):
+    async def add_models(self, model_instance_one: Model,
+                         model_instance_two: Model):
         # TODO: Validation:
         #           - Check if model_instance_one and model_instance_two were
         #             persisted in the database.
@@ -137,14 +152,3 @@ class ManyToMany(Column):
             Condition(self.name_in_table_fk, '=',
                       self.model_[self.model_.get_id()[0]])
         ])
-
-    def sql_column(self, type_sql: str):
-        sql = 'ALTER TABLE ' + self.model.get_name() + \
-            ' ADD {name} ' + type_sql
-        return sql
-
-    def sql(self):
-        column_sql = 'ALTER TABLE ' + self.model.get_name() + \
-            ' ADD CONSTRAINT ' + self.name_relation + \
-            ' FOREIGN KEY ({name}) REFERENCES {name_table} ({field_name})'
-        return column_sql

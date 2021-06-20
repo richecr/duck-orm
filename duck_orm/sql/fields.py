@@ -59,7 +59,7 @@ class Integer(Column, int):
 
     def __init__(self, min_value: int = None, unique: bool = False,
                  primary_key: bool = False, auto_increment: bool = False,
-                 not_null:  bool = False):
+                 not_null: bool = False):
         self.min_value = min_value
         super().__init__('int', unique, primary_key,
                          auto_increment=auto_increment, not_null=not_null)
