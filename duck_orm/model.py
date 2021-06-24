@@ -23,7 +23,7 @@ class Model:
 
         for name, field in inspect.getmembers(self.__class__):
             from duck_orm.sql.relationship import OneToMany, ManyToMany
-            if isinstance(field, OneToMany) or isinstance(field, ManyToMany):
+            if isinstance(field, (OneToMany, ManyToMany)):
                 self.__setattr__(name, field)
                 self[name].model_ = self
 
@@ -163,6 +163,23 @@ class Model:
             cls.get_name(), fields_includes, conditions_str, limit)
         return sql, fields_includes
 
+    @classmethod
+    async def __parser_fields(cls, data: dict):
+        fields_all: List[str] = []
+        from duck_orm.sql.relationship import (
+            OneToMany, ManyToOne, OneToOne)
+        fields_foreign_key: Dict[str, OneToMany] = {}
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, fields_type.Column):
+                fields_all.append(name)
+                if isinstance(field, (ManyToOne, OneToOne)):
+                    field_id = field.model.get_id()[0]
+                    model_entity = await field.model.find_one(conditions=[
+                        Condition(field_id, '=', data[name])
+                    ])
+                    fields_foreign_key[name] = model_entity
+        return fields_all, fields_foreign_key
+
     @ classmethod
     async def find_all(
         cls: Type[T],
@@ -178,19 +195,7 @@ class Model:
         dialect = get_dialect(str(cls.__db__.url.dialect))
         for row in data:
             row = dict(row.items())
-            fields_all: List[str] = []
-            fields_foreign_key: Dict[str, OneToMany] = {}
-            for name, field in inspect.getmembers(cls):
-                if isinstance(field, fields_type.Column):
-                    fields_all.append(name)
-                    from duck_orm.sql.relationship import OneToMany, ManyToOne
-                    if isinstance(field, ManyToOne):
-                        field_id = field.model.get_id()[0]
-                        model_entity = await field.model.find_one(conditions=[
-                            Condition(field_id, '=', row[name])
-                        ])
-                        fields_foreign_key[name] = model_entity
-
+            fields_all, fields_foreign_key = await cls.__parser_fields(row)
             entity = dialect.parser(row, fields_all, fields_foreign_key)
             result.append(cls(**entity))
 
@@ -211,7 +216,8 @@ class Model:
         result: cls = None
         if (data is not None):
             data = dict(data.items())
-            entity = dialect.parser(data, cls.__get_fields_all())
+            fields_all, fields_foreign_key = await cls.__parser_fields(data)
+            entity = dialect.parser(data, fields_all, fields_foreign_key)
             result: cls = cls(**entity)
         return result
 
@@ -264,10 +270,18 @@ class Model:
         sql, values = model.__get_insert_sql()
         await cls.__db__.execute(query=sql, values=values)
         data = await model.__get_last_insert_id()
-        name, _ = cls.get_id()
+        name, field = cls.get_id()
         if (data is not None):
             data = dict(data.items())
-            model._instance[name] = data[name]
+            from duck_orm.sql.relationship import OneToOne
+            if isinstance(field, OneToOne):
+                field_model = model._instance[name]
+                if isinstance(field_model, Model):
+                    name_id_model = field_model.get_id()[0]
+                    field_model.__setattr__(name_id_model, data[name])
+                    model._instance[name] = field_model
+            else:
+                model._instance[name] = data[name]
         return model
 
     def __update_sql(self, fields: List[str]):

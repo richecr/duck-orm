@@ -142,9 +142,13 @@ async def test_save_person():
     person_1_: Person = await city_kh.persons.add(person_1)
     person_2_: Person = await city_kh.persons.add(person_2)
     person_3_: Person = await city_kh.persons.add(person_3)
+    assert person_1.id_teste == 1
     assert person_1_.first_name == 'Rich'
+    assert person_1.city.name == 'Konoha'
     assert person_2_.first_name == 'Elton'
+    assert person_2.city.name == 'Konoha'
     assert person_3_.first_name == 'Naruto'
+    assert person_3.city.name == 'Konoha'
 
 
 @async_decorator
@@ -159,7 +163,9 @@ async def test_save_contact():
     contact_person_1 = await Contact.save(contact_person_1)
     contact_person_2 = await Contact.save(contact_person_2)
     assert contact_person_1.phone == 'XXXXXXXXX-XXXX'
+    assert contact_person_1.id_person.first_name == 'Rich'
     assert contact_person_2.phone == 'YYYYYYYYY-YYYY'
+    assert contact_person_2.id_person.first_name == 'Elton'
 
     with pytest.raises(Exception):
         contact_error = await Contact.save(contact_error)
