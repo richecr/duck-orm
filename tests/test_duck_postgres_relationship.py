@@ -78,7 +78,7 @@ def test_model_class():
 
 
 def test_create_sql():
-    sql = Person._get_create_sql()
+    sql = Person._Model__get_create_sql()
     assert sql == "CREATE TABLE IF NOT EXISTS persons (" + \
         "salary BIGINT, " + \
         "last_name TEXT NOT NULL, " + \

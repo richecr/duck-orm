@@ -68,7 +68,7 @@ class Model:
         return cls.__tablename__
 
     @ classmethod
-    def _get_create_sql(cls):
+    def __get_create_sql(cls):
         fields: List[Tuple[str, str]] = []
 
         for name, field in inspect.getmembers(cls):
@@ -114,7 +114,7 @@ class Model:
 
     @ classmethod
     async def create(cls):
-        sql = cls._get_create_sql()
+        sql = cls.__get_create_sql()
         return await cls.__db__.execute(sql)
 
     @ classmethod
@@ -138,7 +138,7 @@ class Model:
         raise Exception('Model não tem chave primária')
 
     @ classmethod
-    def _get_select_sql(
+    def __get_select_sql(
             cls,
             fields_includes: List[str] = [],
             fields_excludes: List[str] = [],
@@ -184,7 +184,7 @@ class Model:
         conditions: List[Condition] = [],
         limit: int = None
     ):
-        sql, fields_includes = cls._get_select_sql(
+        sql, fields_includes = cls.__get_select_sql(
             fields_includes, fields_excludes, conditions, limit=limit)
         data = await cls.__db__.fetch_all(sql)
         result: List[cls] = []
@@ -204,7 +204,7 @@ class Model:
         fields_excludes: List[str] = [],
         conditions: List[Condition] = []
     ):
-        sql, fields_includes = cls._get_select_sql(
+        sql, fields_includes = cls.__get_select_sql(
             fields_includes, fields_excludes, conditions, limit=1)
         data = await cls.__db__.fetch_one(sql)
         dialect = get_dialect(str(cls.__db__.url.dialect))

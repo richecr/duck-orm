@@ -44,7 +44,7 @@ def test_model_class():
 
 
 def test_create_sql():
-    sql = Person._get_create_sql()
+    sql = Person._Model__get_create_sql()
     assert sql == "CREATE TABLE IF NOT EXISTS persons (" + \
         "salary BIGINT, " + \
         "last_name TEXT NOT NULL, " + \
@@ -99,7 +99,7 @@ async def test_select_all_excludes_persons():
 
 @ async_decorator
 async def test_sql_select_where_persons():
-    sql = Person._get_select_sql(
+    sql = Person._Model__get_select_sql(
         conditions=[
             Condition('first_name', '=', 'Rich')
         ]
