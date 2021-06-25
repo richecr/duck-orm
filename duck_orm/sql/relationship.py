@@ -61,12 +61,15 @@ class OneToMany(Column):
         )
         return sql
 
-    def sql(self, dialect: str, field_name: str,
-            table_relation: str, field: str):
+    def sql(self, dialect: str):
         generator_sql = get_dialect(dialect)
-        sql = generator_sql.alter_table_add_constraint(
-            self.model.get_name(), self.name_relation, field_name,
-            table_relation, field)
+        table_relation = self.model_.get_name()
+        field_name = self.model_.get_id()[0]
+        sql = generator_sql.alter_table_add_constraint(self.model.get_name(),
+                                                       self.name_relation,
+                                                       self.name_in_table_fk,
+                                                       table_relation,
+                                                       field_name)
         return sql
 
 
@@ -93,13 +96,15 @@ class OneToOne(Column):
         self.field = field
         super().__init__('OneToOne', primary_key=True)
 
-    def sql(self) -> str:
-        column_sql = 'ALTER TABLE {table}' + \
-            ' ADD CONSTRAINT ' + self.name_relation + \
-            ' FOREIGN KEY (' + self.field + \
-            ') REFERENCES {name_table} ({field_name})'
-
-        return column_sql
+    def sql(self, dialect: str, name_table: str) -> str:
+        generator_sql = get_dialect(dialect)
+        name_relationship = self.model.get_id()[0]
+        sql = generator_sql.alter_table_add_constraint(name_table,
+                                                       self.name_relation,
+                                                       self.field,
+                                                       self.model.get_name(),
+                                                       name_relationship)
+        return sql
 
 
 class ManyToMany(Column):
