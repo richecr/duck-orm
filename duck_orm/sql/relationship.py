@@ -151,7 +151,5 @@ class ManyToMany(Column):
         return await self.model_relation.save(model_save)
 
     async def get_all(self):
-        return await self.model.find_all(conditions=[
-            Condition(self.name_in_table_fk, '=',
-                      self.model_[self.model_.get_id()[0]])
-        ])
+        # TODO: Implement this method.
+        pass
