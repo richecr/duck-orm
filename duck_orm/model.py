@@ -169,9 +169,9 @@ class Model:
             if isinstance(field, fields_type.Column):
                 fields_all.append(name)
                 if isinstance(field, (ManyToOne, OneToOne)):
-                    field_id = field.model.get_id()[0]
+                    field_name_id = field.model.get_id()[0]
                     model_entity = await field.model.find_one(conditions=[
-                        Condition(field_id, '=', data[name])
+                        Condition(field_name_id, '=', data[name])
                     ])
                     fields_foreign_key[name] = model_entity
         return fields_all, fields_foreign_key
