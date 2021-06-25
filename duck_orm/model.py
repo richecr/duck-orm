@@ -208,7 +208,6 @@ class Model:
             fields_includes, fields_excludes, conditions, limit=1)
         data = await cls.__db__.fetch_one(sql)
         dialect = get_dialect(str(cls.__db__.url.dialect))
-        entity = None
         result: cls = None
         if (data is not None):
             data = dict(data.items())
