@@ -48,7 +48,9 @@ class Model:
             if isinstance(field, fields_type.Column):
                 from duck_orm.sql.relationship import OneToMany, OneToOne
                 if (isinstance(field, OneToMany)):
-                    sql = field.sql(cls.__db__.url.dialect)
+                    sql = field.sql(cls.__db__.url.dialect,
+                                    cls.get_name(),
+                                    cls.get_id()[0])
                     sqls.append(sql)
 
                 elif isinstance(field, OneToOne):

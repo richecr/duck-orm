@@ -61,10 +61,8 @@ class OneToMany(Column):
         )
         return sql
 
-    def sql(self, dialect: str):
+    def sql(self, dialect: str, table_relation: str, field_name: str):
         generator_sql = get_dialect(dialect)
-        table_relation = self.model_.get_name()
-        field_name = self.model_.get_id()[0]
         sql = generator_sql.alter_table_add_constraint(self.model.get_name(),
                                                        self.name_relation,
                                                        self.name_in_table_fk,
