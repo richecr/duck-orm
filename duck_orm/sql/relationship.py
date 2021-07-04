@@ -11,10 +11,12 @@ class ForeignKey(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, model: Type[Model], name_in_table_fk: str):
+    def __init__(self, model: Type[Model], name_in_table_fk: str,
+                 unique: bool = False):
         self.model = model
         self.name_in_table_fk = name_in_table_fk
-        super().__init__('ForeignKey')
+        self.unique = unique
+        super().__init__('ForeignKey', unique=unique)
 
     def sql(self, dialect: str, name: str) -> str:
         generator_sql = get_dialect(dialect)

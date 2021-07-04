@@ -70,6 +70,7 @@ class Model:
     @ classmethod
     def __get_create_sql(cls):
         fields: List[Tuple[str, str]] = []
+        sql_unique_fields = []
 
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
@@ -78,11 +79,13 @@ class Model:
                     OneToMany, ManyToOne, OneToOne, ForeignKey)
 
                 if (isinstance(field, ForeignKey)):
+                    if field.unique:
+                        sql_unique_fields.append(name)
+
                     field_name, field_id = field.model.get_id()
-                    fields.append(
-                        (name, field_id.type_sql(dialect)))
-                    fields.append(
-                        ('', field.sql(dialect, name)))
+                    fields.insert(0,
+                                  (name, field_id.type_sql(dialect)))
+                    fields.append(('', field.sql(dialect, name)))
                 elif (isinstance(field, ManyToOne)):
                     field_relationship = field.model.get_id()[1]
                     fields.append(
@@ -107,6 +110,10 @@ class Model:
                 else:
                     fields.insert(
                         0, (name, field.column_sql(dialect)))
+
+        if sql_unique_fields:
+            sql = "UNIQUE(" + ", ".join(sql_unique_fields) + ")"
+            fields.append(('', sql))
 
         fields_config = [" ".join(field) for field in fields]
         query_executor = get_dialect(str(dialect))
@@ -135,7 +142,7 @@ class Model:
                 if (field.primary_key):
                     return name, field
 
-        raise Exception('Model não tem chave primária')
+        raise Exception('Model has no primary key!')
 
     @ classmethod
     def __get_select_sql(
