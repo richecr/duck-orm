@@ -12,6 +12,8 @@ UPDATE_SQL = "UPDATE {table} SET {fields_values} WHERE {conditions};"
 DELETE_SQL = "DELETE FROM {table} WHERE {conditions};"
 DROP_TABLE_SQL = "DROP TABLE {name};"
 
+ALTER_TABLE_DROP_COLUMN = "ALTER TABLE {name_table} " + \
+                          "DROP COLUMN {field_name};"
 ALTER_TABLE_ADD_CONSTRAINT_SQL = "ALTER TABLE {name_table} " + \
                                  "ADD CONSTRAINT {relation} " + \
                                  "FOREIGN KEY ({field_name}) " + \
@@ -106,7 +108,7 @@ class QueryExecutor:
 
     @classmethod
     def alter_table_add_column(
-        self,
+        cls,
         name_table: str,
         name: str,
         type_sql: str
@@ -120,6 +122,10 @@ class QueryExecutor:
     @classmethod
     def select_tables_sql(cls, name_table: str):
         return SELECT_TABLES_SQL
+
+    @classmethod
+    def alter_table_drop_column(cls, name_table: str, field_name: str):
+        return ALTER_TABLE_DROP_COLUMN.format(name_table=name_table, field_name=field_name)
 
     @classmethod
     def parser(

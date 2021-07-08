@@ -7,7 +7,7 @@ from duck_orm.model import Model
 from duck_orm.sql import fields as Field
 from duck_orm.sql.relationship import ManyToOne, OneToOne, OneToMany
 
-db = Database('postgresql://postgres:arquinator2020@localhost:5432/orm')
+db = Database('sqlite:///example.db')
 
 
 class City(Model):
@@ -45,11 +45,18 @@ class Contact(Model):
     __tablename__ = 'contacts'
     __db__ = db
 
-    id_person: Person = OneToOne(
+    id_person = OneToOne(
         model=Person,
         name_relation='person_contact',
         field='id_person')
     phone: str = Field.String(not_null=True)
+
+    # @classmethod
+    # def relationships(cls):
+    #     cls.id_person: Person = OneToOne(
+    #         model=Person,
+    #         name_relation='person_contact',
+    #         field='id_person')
 
 
 def async_decorator(func):
@@ -78,7 +85,7 @@ def test_create_sql():
     assert sql == "CREATE TABLE IF NOT EXISTS persons (" + \
         "salary BIGINT, " + \
         "last_name TEXT NOT NULL, " + \
-        "id_teste SERIAL PRIMARY KEY, " + \
+        "id_teste INTEGER PRIMARY KEY AUTOINCREMENT, " + \
         "first_name TEXT UNIQUE, " + \
         "age BIGINT, " + \
         "city INTEGER);"
@@ -86,7 +93,7 @@ def test_create_sql():
 
 def get_table(table, tables):
     for tup in tables:
-        if (tup['tablename'] == table):
+        if (tup['name'] == table):
             return True
     return False
 

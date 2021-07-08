@@ -24,8 +24,8 @@ class Model:
         for name, field in inspect.getmembers(self.__class__):
             from duck_orm.sql.relationship import OneToMany, ManyToMany
             if isinstance(field, (OneToMany, ManyToMany)):
+                field.model_ = self
                 self.__setattr__(name, field)
-                self[name].model_ = self
 
     def __getattribute__(self, key: str):
         _instance = object.__getattribute__(self, '_instance')
@@ -46,16 +46,13 @@ class Model:
         sqls: list[str] = []
         for _, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
-                from duck_orm.sql.relationship import OneToMany, OneToOne
-                if (isinstance(field, OneToMany)):
-                    sql = field.sql(cls.__db__.url.dialect,
-                                    cls.get_name(),
-                                    cls.get_id()[0])
-                    sqls.append(sql)
-
-                elif isinstance(field, OneToOne):
-                    sql = field.sql(cls.__db__.url.dialect, cls.get_name())
-                    sqls.append(sql)
+                from duck_orm.sql.relationship import OneToMany
+                if isinstance(field, OneToMany):
+                    dialect = cls.__db__.url.dialect
+                    field_name, field_id = cls.get_id()
+                    sql = field.sql(dialect, cls.get_name(), field_name,
+                                    field_id.type_sql(dialect))
+                    sqls = sqls + sql
 
         for sql in sqls:
             await cls.__db__.execute(sql)
@@ -83,33 +80,24 @@ class Model:
                         sql_unique_fields.append(name)
 
                     field_name, field_id = field.model.get_id()
-                    fields.insert(0,
-                                  (name, field_id.type_sql(dialect)))
+                    fields.insert(0, (name, field_id.type_sql(dialect)))
                     fields.append(('', field.sql(dialect, name)))
                 elif (isinstance(field, ManyToOne)):
-                    field_relationship = field.model.get_id()[1]
-                    fields.append(
-                        (name, field_relationship.type_sql(dialect)))
+                    field_id = field.model.get_id()[1]
+                    fields.append((name, field_id.type_sql(dialect)))
                 elif (isinstance(field, OneToMany)):
-                    field_name, field = field.model.get_id()
-                    fields.append(
-                        (name, field.type_sql(dialect)))
-                    fields.append(('', field.sql(dialect,
-                                                 name, field.model.get_name(),
-                                                 field_name)))
+                    field_name, field_id = field.model.get_id()
+                    table_name = field_id.model.get_name()
+                    sql = field_id.sql(dialect, name, table_name, field_name)
+                    fields.append((name, field.type_sql(dialect)))
+                    fields.append(('', sql))
                 elif (isinstance(field, OneToOne)):
-                    field_name, field = field.model.get_id()
-                    fields.append(
-                        (name, field.column_sql(dialect)))
-                    fields.append(
-                        ('',
-                         field.sql().format(
-                             name=name,
-                             name_table=field.model.get_name(),
-                             field_name=field_name)))
+                    field_name, field_id = field.model.get_id()
+                    table_name = field.model.get_name()
+                    fields.append((name, field_id.column_sql(dialect)))
+                    fields.append(('', field.sql(dialect, table_name)))
                 else:
-                    fields.insert(
-                        0, (name, field.column_sql(dialect)))
+                    fields.insert(0, (name, field.column_sql(dialect)))
 
         if sql_unique_fields:
             sql = "UNIQUE(" + ", ".join(sql_unique_fields) + ")"
@@ -169,18 +157,19 @@ class Model:
     @classmethod
     async def __parser_fields(cls, data: dict):
         fields_all: List[str] = []
-        from duck_orm.sql.relationship import (
-            OneToMany, ManyToOne, OneToOne)
+        from duck_orm.sql.relationship import (OneToMany, ManyToOne, OneToOne)
         fields_foreign_key: Dict[str, OneToMany] = {}
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
                 fields_all.append(name)
                 if isinstance(field, (ManyToOne, OneToOne)):
-                    field_name_id = field.model.get_id()[0]
+                    field_name = field.model.get_id()[0]
+                    condition_with_id = Condition(field_name, '=', data[name])
                     model_entity = await field.model.find_one(conditions=[
-                        Condition(field_name_id, '=', data[name])
+                        condition_with_id
                     ])
                     fields_foreign_key[name] = model_entity
+
         return fields_all, fields_foreign_key
 
     @ classmethod
@@ -295,8 +284,7 @@ class Model:
                   "has an ID field"
             raise UpdateException(msg.format(self))
 
-        condition = ['{field} = {value}'.format(
-            field=field_name_id, value=field_id)]
+        condition = ['{} = {}'.format(field_name_id, field_id)]
         query_executor = get_dialect(str(self.__db__.url.dialect))
         sql = query_executor.update_sql(
             self.get_name(), fields, conditions=condition)
@@ -307,16 +295,14 @@ class Model:
         fields = []
         values = {}
         for name, value in kwargs.items():
-            fields_tmp = "{field} = :{field_bind_value}".format(
-                field=name, field_bind_value=name)
+            fields_tmp = "{field} = :{field}".format(field=name)
             fields.append(fields_tmp)
             values[name] = value
 
         sql, field_name_id, field_id = self.__update_sql(fields)
         await self.__db__.execute(query=sql, values=values)
-        return await self.find_one(conditions=[
-            Condition(field_name_id, '=', field_id)
-        ])
+        condition_with_id = Condition(field_name_id, '=', field_id)
+        return await self.find_one(conditions=[condition_with_id])
 
     @ classmethod
     def __drop_table(cls, name_table: str, dialect: str):
@@ -343,8 +329,8 @@ class Model:
     @ classmethod
     async def delete(cls, conditions: List[Condition]):
         try:
-            sql = cls.__delete(cls.get_name(), conditions,
-                               str(cls.__db__.url.dialect))
+            dialect = cls.__db__.url.dialect
+            sql = cls.__delete(cls.get_name(), conditions, str(dialect))
             await cls.__db__.execute(sql)
         except Exception as ex:
             print('DELETE ERROR: {ex}'.format(ex=ex))

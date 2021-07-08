@@ -1,3 +1,5 @@
+from duck_orm.sql.sqlite import QuerySQLite
+from duck_orm.sql.postgres import QueryPostgres
 import inspect
 from typing import Any, Dict, Type
 
@@ -63,14 +65,25 @@ class OneToMany(Column):
         )
         return sql
 
-    def sql(self, dialect: str, table_relation: str, field_name: str):
+    def sql(self, dialect: str, table_relation: str, field_name: str,
+            fields_type: str):
         generator_sql = get_dialect(dialect)
-        sql = generator_sql.alter_table_add_constraint(self.model.get_name(),
-                                                       self.name_relation,
-                                                       self.name_in_table_fk,
-                                                       table_relation,
-                                                       field_name)
-        return sql
+        sqls: list[str] = []
+        name_table = self.model.get_name()
+        if isinstance(generator_sql, QuerySQLite):
+            sql_drop = generator_sql.alter_table_drop_column(
+                name_table, self.name_in_table_fk)
+            sql = generator_sql.alter_table_add_constraint(
+                name_table, self.name_relation, self.name_in_table_fk,
+                table_relation, field_name, fields_type)
+            sqls = sqls + [sql_drop, sql]
+        else:
+            sql = generator_sql.alter_table_add_constraint(
+                name_table, self.name_relation, self.name_in_table_fk,
+                table_relation, field_name)
+            sqls.append(sql)
+
+        return sqls
 
 
 class ManyToOne(Column):
@@ -96,14 +109,11 @@ class OneToOne(Column):
         self.field = field
         super().__init__('OneToOne', primary_key=True)
 
-    def sql(self, dialect: str, name_table: str) -> str:
+    def sql(self, dialect: str, name_table: str):
         generator_sql = get_dialect(dialect)
         name_relationship = self.model.get_id()[0]
-        sql = generator_sql.alter_table_add_constraint(name_table,
-                                                       self.name_relation,
-                                                       self.field,
-                                                       self.model.get_name(),
-                                                       name_relationship)
+        sql = generator_sql.add_foreing_key_column(
+            self.field, name_table, name_relationship)
         return sql
 
 
