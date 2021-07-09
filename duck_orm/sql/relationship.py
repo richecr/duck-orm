@@ -22,10 +22,7 @@ class ForeignKey(Column):
     def sql(self, dialect: str, name: str) -> str:
         generator_sql = get_dialect(dialect)
         sql = generator_sql.add_foreing_key_column(
-            name,
-            self.model.get_name(),
-            self.name_in_table_fk
-        )
+            name, self.model.get_name(), self.name_in_table_fk)
         return sql
 
 
@@ -128,9 +125,6 @@ class ManyToMany(Column):
 
     async def add_models(self, model_instance_one: Model,
                          model_instance_two: Model):
-        # TODO: Validation:
-        #           - Check if model_instance_one and model_instance_two were
-        #             persisted in the database.
         model_dict: Dict[str, Any] = {}
         for name, field in inspect.getmembers(self.model_relation):
             if (isinstance(field, ForeignKey)) and not field.primary_key:
@@ -145,9 +139,6 @@ class ManyToMany(Column):
         return await self.model_relation.save(model_save)
 
     async def add(self, model_instance_one: Model):
-        # TODO: Validation:
-        #           - Check if model_instance_one were
-        #             persisted in the database.
         model_dict: Dict[str, Any] = {}
         for name, field in inspect.getmembers(self.model_relation):
             if (isinstance(field, ForeignKey)) and not field.primary_key:
@@ -162,5 +153,20 @@ class ManyToMany(Column):
         return await self.model_relation.save(model_save)
 
     async def get_all(self):
-        # TODO: Implement this method.
-        pass
+        field_name = self.model_.get_id()[0]
+        value_field = self.model_[field_name]
+        field_name_relation = ''
+        field_name_other_model = ''
+        for name, field in inspect.getmembers(self.model_relation):
+            if (isinstance(field, ForeignKey)) and not field.primary_key:
+                if self.model == field.model:
+                    field_name_other_model = name
+                elif isinstance(self.model_, field.model):
+                    field_name_relation = name
+
+        condition = Condition(field_name_relation, '=', value_field)
+        models_relations = await self.model_relation.find_all(
+            conditions=[condition])
+        result_models = list(
+            map(lambda model: model[field_name_other_model], models_relations))
+        return result_models

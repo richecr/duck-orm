@@ -116,9 +116,9 @@ class Model:
     def __get_fields_all(cls) -> List[str]:
         fields_all: List[str] = []
         for name, field in inspect.getmembers(cls):
-            from duck_orm.sql.relationship import OneToMany
+            from duck_orm.sql.relationship import OneToMany, ManyToMany
             if isinstance(field, fields_type.Column) and not isinstance(
-                    field, OneToMany):
+                    field, (OneToMany, ManyToMany)):
                 fields_all.append(name)
 
         return fields_all
@@ -157,12 +157,13 @@ class Model:
     @classmethod
     async def __parser_fields(cls, data: dict):
         fields_all: List[str] = []
-        from duck_orm.sql.relationship import (OneToMany, ManyToOne, OneToOne)
+        from duck_orm.sql.relationship import (
+            OneToMany, ManyToOne, OneToOne, ForeignKey)
         fields_foreign_key: Dict[str, OneToMany] = {}
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
                 fields_all.append(name)
-                if isinstance(field, (ManyToOne, OneToOne)):
+                if isinstance(field, (ManyToOne, OneToOne, ForeignKey)):
                     field_name = field.model.get_id()[0]
                     condition_with_id = Condition(field_name, '=', data[name])
                     model_entity = await field.model.find_one(conditions=[

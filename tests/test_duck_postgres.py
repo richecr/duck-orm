@@ -11,12 +11,18 @@ from duck_orm.exceptions import UpdateException
 db = Database('postgresql://postgres:arquinator2020@localhost:5432/orm')
 
 
+class MyTest(Model):
+    __db__ = db
+
+    id: int = Field.Integer(primary_key=True, auto_increment=True)
+    msg: str = Field.String(not_null=True)
+
+
 class Person(Model):
     __tablename__ = 'persons'
     __db__ = db
 
-    id: int = Field.Integer(
-        primary_key=True, auto_increment=True)
+    id: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
     age: int = Field.Integer(min_value=18)
@@ -39,6 +45,7 @@ def async_decorator(func):
 
 def test_model_class():
     assert Person.get_name() == 'persons'
+    assert MyTest.get_name() == 'mytest'
     assert isinstance(Person.first_name, Field.String)
     assert issubclass(Person, Model)
 
@@ -64,8 +71,17 @@ def get_table(table, tables):
 async def test_create_table():
     await db.connect()
     await Person.create()
+    await MyTest.create()
     tables = await Person.find_all_tables()
     assert get_table('persons', tables)
+
+
+@ async_decorator
+async def test_save_person():
+    t = MyTest(msg="Teste 1")
+    await MyTest.save(t)
+    testes = await MyTest.find_all(['msg'])
+    assert testes[0].msg == 'Teste 1'
 
 
 @ async_decorator
@@ -154,7 +170,7 @@ async def test_find_one():
     person = await Person.find_one(conditions=[
         Condition('first_name', '=', 'Lucas')
     ])
-    assert person != None
+    assert person is not None
     assert person.first_name == 'Lucas'
     assert person.last_name == 'Lucas Andrade'
 
@@ -197,7 +213,8 @@ async def test_update_sql_without_id():
     assert person.first_name == 'Teste 1 UPDATE'
     assert person.id is None
     with pytest.raises(UpdateException):
-        p = await person.update(first_name='Teste 2 UPDATE', last_name='UPDATE 2')
+        p = await person.update(first_name='Teste 2 UPDATE',
+                                last_name='UPDATE 2')
     assert person.first_name == 'Teste 1 UPDATE'
     assert person.last_name == 'UPDATE'
 
@@ -205,3 +222,4 @@ async def test_update_sql_without_id():
 @async_decorator
 async def test_drop_table():
     await Person.drop_table()
+    await MyTest.drop_table()

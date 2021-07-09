@@ -5,7 +5,7 @@ import pytest
 
 from duck_orm.model import Model
 from duck_orm.sql import fields as Field
-from duck_orm.sql.relationship import ManyToOne, OneToOne, OneToMany
+from duck_orm.sql.relationship import ForeignKey, ManyToMany, ManyToOne, OneToOne, OneToMany
 
 db = Database('sqlite:///example.db')
 
@@ -51,12 +51,42 @@ class Contact(Model):
         field='id_person')
     phone: str = Field.String(not_null=True)
 
-    # @classmethod
-    # def relationships(cls):
-    #     cls.id_person: Person = OneToOne(
-    #         model=Person,
-    #         name_relation='person_contact',
-    #         field='id_person')
+
+class User(Model):
+    __tablename__ = 'users'
+    __db__ = db
+
+    id: int = Field.Integer(primary_key=True, auto_increment=True)
+    name: str = Field.String()
+
+    @classmethod
+    def relationships(cls):
+        cls.working_day = ManyToMany(model=WorkingDay,
+                                     model_relation=UsersWorkingDay)
+
+
+class WorkingDay(Model):
+    __tablename__ = 'working_days'
+    __db__ = db
+
+    id: int = Field.Integer(primary_key=True, auto_increment=True)
+    week_day: str = Field.String()
+    working_date: str = Field.String()
+
+    @classmethod
+    def relationships(cls):
+        cls.users = ManyToMany(model=User, model_relation=UsersWorkingDay)
+
+
+class UsersWorkingDay(Model):
+    __tablename__ = 'users_working_days'
+    __db__ = db
+
+    id: int = Field.Integer(primary_key=True, auto_increment=True)
+    users: User = ForeignKey(
+        model=User, name_in_table_fk='id')
+    working_days: WorkingDay = ForeignKey(
+        model=WorkingDay, name_in_table_fk='id')
 
 
 def async_decorator(func):
@@ -77,7 +107,13 @@ def test_model_class():
     assert City.get_name() == 'cities'
     assert Person.get_name() == 'persons'
     assert Contact.get_name() == 'contacts'
+    assert Contact.get_name() == 'contacts'
+    assert User.get_name() == 'users'
+    assert WorkingDay.get_name() == 'working_days'
+    assert UsersWorkingDay.get_name() == 'users_working_days'
     assert isinstance(Person.city, ManyToOne)
+    assert isinstance(UsersWorkingDay.users, ForeignKey)
+    assert isinstance(UsersWorkingDay.working_days, ForeignKey)
 
 
 def test_create_sql():
@@ -104,15 +140,24 @@ async def test_create_table():
     await City.create()
     await Person.create()
     await Contact.create()
+    await User.create()
+    await WorkingDay.create()
+    await UsersWorkingDay.create()
 
     await City.associations()
     await Person.associations()
     await Contact.associations()
+    await User.associations()
+    await WorkingDay.associations()
+    await UsersWorkingDay.associations()
 
     tables = await Person.find_all_tables()
     assert get_table('persons', tables)
     assert get_table('contacts', tables)
     assert get_table('cities', tables)
+    assert get_table('users', tables)
+    assert get_table('working_days', tables)
+    assert get_table('users_working_days', tables)
 
 
 @async_decorator
@@ -175,7 +220,68 @@ async def test_save_contact():
 
 
 @async_decorator
+async def test_save_users():
+    global user, user1, user2
+
+    user = User(name='Rich')
+    user1 = User(name='Rich 1')
+    user2 = User(name='Rich 2')
+
+    user = await User.save(user)
+    user1 = await User.save(user1)
+    user2 = await User.save(user2)
+    assert user.id == 1
+    assert user.name == 'Rich'
+    assert user1.id == 2
+    assert user1.name == 'Rich 1'
+    assert user2.id == 3
+    assert user2.name == 'Rich 2'
+
+
+@async_decorator
+async def test_save_working_days():
+    global working_day, working_day1, working_day2
+
+    working_day = WorkingDay(week_day='segunda', working_date='17/05/1999')
+    working_day1 = WorkingDay(week_day='segunda 1', working_date='17/06/1999')
+    working_day2 = WorkingDay(week_day='segunda 2', working_date='17/07/1999')
+    working_day = await WorkingDay.save(working_day)
+    working_day1 = await WorkingDay.save(working_day1)
+    working_day2 = await WorkingDay.save(working_day2)
+    assert working_day.id == 1
+    assert working_day.week_day == 'segunda'
+    assert working_day.working_date == '17/05/1999'
+    assert working_day1.id == 2
+    assert working_day1.week_day == 'segunda 1'
+    assert working_day1.working_date == '17/06/1999'
+    assert working_day2.id == 3
+    assert working_day2.week_day == 'segunda 2'
+    assert working_day2.working_date == '17/07/1999'
+
+
+@async_decorator
+async def test_save_users_working_days():
+    await User.working_day.add_models(working_day, user)
+    await User.working_day.add_models(working_day, user1)
+    await User.working_day.add_models(working_day, user2)
+    await user.working_day.add(working_day1)
+    await user.working_day.add(working_day2)
+
+    working_days: list[WorkingDay] = await user.working_day.get_all()
+    assert len(working_days) == 3
+    assert working_days[0].id == 1
+    assert working_days[0].week_day == 'segunda'
+    assert working_days[1].id == 2
+    assert working_days[1].week_day == 'segunda 1'
+    assert working_days[2].id == 3
+    assert working_days[2].week_day == 'segunda 2'
+
+
+@async_decorator
 async def test_drop_table():
     await Contact.drop_table()
     await Person.drop_table()
     await City.drop_table()
+    await UsersWorkingDay.drop_table()
+    await WorkingDay.drop_table()
+    await User.drop_table()
