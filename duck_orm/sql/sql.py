@@ -13,14 +13,17 @@ DELETE_SQL = "DELETE FROM {table} WHERE {conditions};"
 DROP_TABLE_SQL = "DROP TABLE {name};"
 
 ALTER_TABLE_DROP_COLUMN = "ALTER TABLE {name_table} " + \
-                          "DROP COLUMN {field_name};"
+    "DROP COLUMN {field_name};"
 ALTER_TABLE_ADD_CONSTRAINT_SQL = "ALTER TABLE {name_table} " + \
-                                 "ADD CONSTRAINT {relation} " + \
-                                 "FOREIGN KEY ({field_name}) " + \
-                                 "REFERENCES {table_relation} ({field});"
+    "ADD CONSTRAINT {relation} " + \
+    "FOREIGN KEY ({field_name}) " + \
+    "REFERENCES {table_relation} ({field});"
 ALTER_TABLE_ADD_COLUMN_SQL = "ALTER TABLE {name_table} ADD {name} {type_sql};"
 ADD_FOREING_KEY_COLUMN_SQL = "FOREIGN KEY ({name}) REFERENCES {name_table} " +\
     "({name_in_table_fk})"
+ALTER_TABLE_ADD_COLUMN_WITH_CONSTRAINT_SQL = "ALTER TABLE {name_table} " + \
+    "ADD COLUMN {field_name} {fields_type} " + \
+    "REFERENCES {table_relation} ({field});"
 
 
 class QueryExecutor:
@@ -79,23 +82,56 @@ class QueryExecutor:
         return DROP_TABLE_SQL.format(name=name_table)
 
     @classmethod
+    def alter_table_add_column_with_constraint(
+        cls,
+        name_table: str,
+        field_name: str,
+        table_relation: str,
+        field: str,
+        fields_type: str
+    ):
+        sql_add_column = ALTER_TABLE_ADD_COLUMN_WITH_CONSTRAINT_SQL.format(
+            name_table=name_table,
+            field_name=field_name,
+            table_relation=table_relation,
+            field=field,
+            fields_type=fields_type
+        )
+
+        return sql_add_column
+
+    @classmethod
     def alter_table_add_constraint(
-        self,
+        cls,
         name_table: str,
         relation: str,
         field_name: str,
         table_relation: str,
-        field: str
-    ) -> str:
-        return ALTER_TABLE_ADD_CONSTRAINT_SQL.format(
-            name_table=name_table,
-            relation=relation,
-            field_name=field_name,
-            table_relation=table_relation,
-            field=field)
+        field: str,
+        fields_type: str = ''
+    ):
+        sqls: list[str] = []
+        if fields_type:
+            sql_remove_column = cls.alter_table_drop_column(
+                name_table, field_name)
+            sql_add_column = cls.alter_table_add_column_with_constraint(
+                name_table, field_name, table_relation, field, fields_type)
 
+            sqls += [sql_remove_column, sql_add_column]
+        else:
+            sql = ALTER_TABLE_ADD_CONSTRAINT_SQL.format(
+                name_table=name_table,
+                relation=relation,
+                field_name=field_name,
+                table_relation=table_relation,
+                field=field)
+            sqls += [sql]
+
+        return sqls
+
+    @classmethod
     def add_foreing_key_column(
-        self,
+        cls,
         name: str,
         name_table: str,
         name_in_table_fk: str
@@ -125,7 +161,8 @@ class QueryExecutor:
 
     @classmethod
     def alter_table_drop_column(cls, name_table: str, field_name: str):
-        return ALTER_TABLE_DROP_COLUMN.format(name_table=name_table, field_name=field_name)
+        return ALTER_TABLE_DROP_COLUMN.format(
+            name_table=name_table, field_name=field_name)
 
     @classmethod
     def parser(

@@ -50,34 +50,28 @@ class OneToMany(Column):
 
     async def get_all(self):
         return await self.model.find_all(conditions=[
-            Condition(self.name_in_table_fk, '=',
-                      self.model_[self.model_.get_id()[0]])
+            Condition(
+                self.name_in_table_fk,
+                '=',
+                self.model_[self.model_.get_id()[0]]
+            )
         ])
 
     def sql_column(self, dialect: str, name: str, type_sql: str):
         generator_sql = get_dialect(dialect)
         sql = generator_sql.alter_table_add_column(
-            self.model.get_name(), name, type_sql
-        )
+            self.model.get_name(), name, type_sql)
         return sql
 
     def sql(self, dialect: str, table_relation: str, field_name: str,
-            fields_type: str):
+            fields_type: str = ''):
         generator_sql = get_dialect(dialect)
         sqls: list[str] = []
         name_table = self.model.get_name()
-        if isinstance(generator_sql, QuerySQLite):
-            sql_drop = generator_sql.alter_table_drop_column(
-                name_table, self.name_in_table_fk)
-            sql = generator_sql.alter_table_add_constraint(
-                name_table, self.name_relation, self.name_in_table_fk,
-                table_relation, field_name, fields_type)
-            sqls = sqls + [sql_drop, sql]
-        else:
-            sql = generator_sql.alter_table_add_constraint(
-                name_table, self.name_relation, self.name_in_table_fk,
-                table_relation, field_name)
-            sqls.append(sql)
+        sql_ = generator_sql.alter_table_add_constraint(
+            name_table, self.name_relation, self.name_in_table_fk,
+            table_relation, field_name, fields_type)
+        sqls += sql_
 
         return sqls
 
