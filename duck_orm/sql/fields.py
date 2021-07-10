@@ -1,5 +1,7 @@
 from typing import Dict
-from duck_orm.sql.sqlite import TYPES_SQL
+
+from duck_orm.sql.sqlite import TYPES_SQL as TYPES_SQL_LITE
+from duck_orm.sql.postgres import TYPES_SQL as TYPES_SQL_POSTGRES
 
 
 class Column:
@@ -12,9 +14,9 @@ class Column:
         self.type = type_column
         self.auto_increment = auto_increment
 
-    @property
-    def type_sql(cls) -> str:
-        return TYPES_SQL[cls.type]
+    def type_sql(self, dialect: str) -> str:
+        column_sql = self.get_dialect(dialect)[self.type]
+        return column_sql
 
     def column_sql(self, dialect: str) -> str:
         column_sql = self.get_dialect(dialect)[self.type]
@@ -34,11 +36,11 @@ class Column:
 
     def get_dialect(self, dialect: str) -> Dict[str, str]:
         if dialect == 'postgresql':
-            return TYPES_SQL
+            return TYPES_SQL_POSTGRES
         elif dialect == 'sqlite':
-            return TYPES_SQL
+            return TYPES_SQL_LITE
         else:
-            return TYPES_SQL
+            return TYPES_SQL_LITE
 
 
 class String(Column, str):
@@ -57,7 +59,7 @@ class Integer(Column, int):
 
     def __init__(self, min_value: int = None, unique: bool = False,
                  primary_key: bool = False, auto_increment: bool = False,
-                 not_null:  bool = False):
+                 not_null: bool = False):
         self.min_value = min_value
         super().__init__('int', unique, primary_key,
                          auto_increment=auto_increment, not_null=not_null)
