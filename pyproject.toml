@@ -7,11 +7,11 @@ authors = ["Rich <richelton14@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 databases = "^0.4.1"
-asyncpg = "^0.22.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 aiosqlite = "^0.17.0"
+asyncpg = "^0.22.0"
 autopep8 = "^1.5.5"
 mkdocs-material = "^7.1.2"
 pytest-cov = "^2.12.1"

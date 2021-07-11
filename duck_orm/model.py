@@ -21,7 +21,7 @@ class Model:
         for key, value in kwargs.items():
             self._instance[key] = value
 
-        for name, field in inspect.getmembers(self.__class__):
+        for name, field in inspect.getmembers(self):
             from duck_orm.sql.relationship import OneToMany, ManyToMany
             if isinstance(field, (OneToMany, ManyToMany)):
                 field.model_ = self
@@ -36,8 +36,7 @@ class Model:
     def __getitem__(self, key):
         return getattr(self, key)
 
-    @classmethod
-    def relationships(cls):
+    def relationships(self):
         pass
 
     @classmethod
@@ -86,11 +85,7 @@ class Model:
                     field_id = field.model.get_id()[1]
                     fields.append((name, field_id.type_sql(dialect)))
                 elif (isinstance(field, OneToMany)):
-                    field_name, field_id = field.model.get_id()
-                    table_name = field_id.model.get_name()
-                    sql = field_id.sql(dialect, name, table_name, field_name)
-                    fields.append((name, field.type_sql(dialect)))
-                    fields.append(('', sql))
+                    continue
                 elif (isinstance(field, OneToOne)):
                     field_name, field_id = field.model.get_id()
                     table_name = field.model.get_name()

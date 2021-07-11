@@ -1,8 +1,13 @@
 site_name: Duck-ORM
 site_description: Async database support for Python.
 
+google_analytics:
+  - UA-72514911-3
+  - auto
 theme:
   name: "material"
+  palette:
+    primary: indigo
 
 repo_name: richecr/duck-orm
 repo_url: https://github.com/richecr/duck-orm
@@ -10,7 +15,14 @@ repo_url: https://github.com/richecr/duck-orm
 
 nav:
   - Introduction: "index.md"
+  - Getting Started: "getting_started.md"
+  - Models:
+    - Definition: "models/index.md"
+  - Fields: 'fields.md'
 
 markdown_extensions:
   - admonition
   - codehilite
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      linenums: true
