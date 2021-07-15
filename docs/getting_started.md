@@ -3,7 +3,7 @@
 ## Installation
 
 ```bash
-$ pip install duck-orm
+pip install duck-orm
 ```
 
 ### Dependencies
@@ -17,7 +17,7 @@ DuckORM has 3 dependencies that depend on the backend database you want to use:
 #### Postgresql
 
 ```bash
-$ pip install duck-orm[postgresql]
+pip install duck-orm[postgresql]
 ```
 
 Will install also `asyncpg`.
@@ -25,7 +25,7 @@ Will install also `asyncpg`.
 #### Postgresql + aiopg
 
 ```bash
-$ pip install duck-orm[postgresql+aiopg]
+pip install duck-orm[postgresql+aiopg]
 ```
 
 Will install also `aiopg`.
@@ -33,7 +33,7 @@ Will install also `aiopg`.
 #### SQLite
 
 ```bash
-$ pip install duck-orm[sqlite]
+pip install duck-orm[sqlite]
 ```
 
 Will install also `aiosqlite`.
@@ -45,5 +45,5 @@ Se desejar, pode instalar as dependências manualmente também.
 Exemplo:
 
 ```bash
-$ pip install asyncpg
+pip install asyncpg
 ```
