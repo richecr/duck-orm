@@ -18,6 +18,7 @@ nav:
   - Getting Started: "getting_started.md"
   - Models:
     - Definition: "models/index.md"
+    - Methods: "models/methods.md"
   - Fields: 'fields.md'
 
 markdown_extensions:
