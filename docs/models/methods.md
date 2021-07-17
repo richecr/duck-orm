@@ -117,20 +117,52 @@ banco de dados.
 from duck_orm.sql.condition import Condition
 
 persons: list[Person] = await Person.find_all(
-    fields_includes = ['first_name', 'age', 'salary],
+    fields_includes=['first_name', 'age', 'salary'],
     # Poderia ter deixado esse parâmetro em branco, pois ele já não está no
     # fields_includes.
-    fields_excludes = ['id'],
-    conditions = [
-        Condition('first_name', 'LIKE', 'Teste'),
-        Condition('salary', '>=', 2500)
-    ],
-    limit = 2
+    fields_excludes=['id'],
+    conditions=[
+        Condition('first_name', 'LIKE', 'Teste%'),
+        Condition('salary', '>=', 2600)
+    ]
 )
 
 for person in persons:
-    print(person.id) # None em todos.
-    print(person.first_name) # Teste 2, Teste 3
-    print(person.age) # 25, 22
-    print(person.salary) # 5000, 2500
+    print(person.id_teste)  # None em todos.
+    print(person.first_name)  # Teste 1, Teste 2
+    print(person.age)  # 19, 25
+    print(person.salary)  # 5000, 4000
+```
+
+### find_one
+
+``` python
+find_all(
+    fields_includes: List[str] = [],
+    fields_excludes: List[str] = [],
+    conditions: List[Condition] = [],
+) -> List[Model]
+```
+
+Método assíncrono que recupera apenas um objeto persistido em uma tabela no
+banco de dados. Se você passar na condição filtrando pelo campo chave, esse 
+método pode ser usado como um find by id.
+
+- Parâmetros:
+    - `fields_includes`: Os campos do `Model` que devem ser recuperados.
+    - `fields_excludes`: Os campos do `Model` que não devem ser recuperados.
+    - `conditions`: As condições para filtrar o objeto.
+
+``` python
+person: Person = await Person.find_one(
+    conditions=[
+        Condition('id_teste', '=', 1)
+    ]
+)
+
+print(person.id_teste)  # 1
+print(person.first_name)  # Teste 1
+print(person.last_name)  # teste lastname
+print(person.age)  # 19
+print(person.salary)  # 5000
 ```
