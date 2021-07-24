@@ -36,7 +36,7 @@ class Person(Model):
         auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
-    age: int = Field.BigInteger(min_value=18)
+    age: int = Field.BigInteger()
     salary: int = Field.BigInteger()
     city: City = ForeignKey(model=City, name_in_table_fk='id')
 

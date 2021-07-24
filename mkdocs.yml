@@ -19,7 +19,8 @@ nav:
   - Models:
     - Definition: "models/index.md"
     - Methods: "models/methods.md"
-  - Fields: 'fields.md'
+  - Fields:
+    - Tipos de Campos: "fields/index.md"
 
 markdown_extensions:
   - admonition
