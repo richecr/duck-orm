@@ -291,6 +291,10 @@ class Model:
         fields = []
         values = {}
         for name, value in kwargs.items():
+            if isinstance(value, Model):
+                name_id_fk = value.get_id()[0]
+                value = value[name_id_fk]
+
             fields_tmp = "{field} = :{field}".format(field=name)
             fields.append(fields_tmp)
             values[name] = value

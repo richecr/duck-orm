@@ -1,16 +1,16 @@
 # Methods
 
-Aqui vamos mostrar alguns métodos que o `Model` possui e também vamos ver como
-usar cada um deles.
+Here we will show some methods that the Model has and we will also see how to
+use each one of them.
 
-**Para executar os exemplos executem usando o `ipython`.**
+**To run the examples run using `ipython`.**
 
 ## get_name
 
-Método que retorna o nome do `Model` no banco de dados.
+Method that returns the name of the `Model` in the database.
 
-E caso, o atributo `__tablename__` não tenha sido atribuído no `Model`, então
-esse método irá retornar o nome da classe em caixa baixa.
+And if the `__tablename__` attribute has not been assigned in the `Model`, then
+this method will return the class name in lowercase.
 
 ``` python hl_lines="7 16"
 class Person(Model):
@@ -33,10 +33,11 @@ Client.get_name() # Will return 'clients'.
 
 ## create
 
-Método assíncrono que irá criar a tabela que representa o `Model` no banco de dados.
+Asynchronous method that will create the table that represents the `Model` 
+in the database of data.
 
-Ele sempre deve ser usado **antes** de tentar salvar, buscar ou deletar algum objeto
-do `Model`.
+It should always be used **before** trying to save, search or delete an object
+of the `Model`.
 
 ``` python hl_lines="11"
 class Person(Model):
@@ -58,10 +59,10 @@ await Person.create()
 save(model: Model) -> Model:
 ```
 
-Método assíncrono que irá salvar um objeto na tabela no banco de dados.
+Asynchronous method that will save an object to the table in the database.
 
-- Parâmetros:
-    - `model`: Instância do `Model` com os campos preenchidos.
+- Parameters:
+    - `model`: `Model` instance with fields filled.
 
 ``` python
 ...
@@ -102,14 +103,14 @@ find_all(
 ) -> List[Model]
 ```
 
-Método assíncrono que recupera todos os objetos persistidos em uma tabela no
-banco de dados.
+Asynchronous method that retrieves all objects persisted in a table in the
+database.
 
-- Parâmetros:
-    - `fields_includes`: Os campos do `Model` que devem ser recuperados.
-    - `fields_excludes`: Os campos do `Model` que não devem ser recuperados.
-    - `conditions`: As condições para filtrar os objetos.
-    - `limit`: O limite máximo de objetos que devem ser recuperados.
+- Parameters:
+    - `fields_includes`: The `Model` fields that are to be retrieved.
+    - `fields_excludes`: The `Model` fields that should not be retrieved.
+    - `conditions`: Conditions for filtering objects.
+    - `limit`: The maximum limit of objects that must be retrieved.
 
 ``` python
 ...
@@ -118,7 +119,7 @@ from duck_orm.sql.condition import Condition
 
 persons: list[Person] = await Person.find_all(
     fields_includes=['first_name', 'age', 'salary'],
-    # Poderia ter deixado esse parâmetro em branco, pois ele já não está no
+    # I could have left this parameter blank as it is no longer in 
     # fields_includes.
     fields_excludes=['id'],
     conditions=[
@@ -144,14 +145,14 @@ find_all(
 ) -> List[Model]
 ```
 
-Método assíncrono que recupera apenas um objeto persistido em uma tabela no
-banco de dados. Se você passar na condição filtrando pelo campo chave, esse 
-método pode ser usado como um find by id.
+Asynchronous method that retrieves only one object persisted in a table in the
+database. If you pass the filtering condition by the key field, this
+method can be used as a find by id.
 
-- Parâmetros:
-    - `fields_includes`: Os campos do `Model` que devem ser recuperados.
-    - `fields_excludes`: Os campos do `Model` que não devem ser recuperados.
-    - `conditions`: As condições para filtrar o objeto.
+- Parameters:
+    - `fields_includes`: The `Model` fields that are to be retrieved.
+    - `fields_excludes`: The `Model` fields that should not be retrieved.
+    - `conditions`: The conditions for filtering the object.
 
 ``` python
 person: Person = await Person.find_one(
@@ -165,4 +166,64 @@ print(person.first_name)  # Teste 1
 print(person.last_name)  # teste lastname
 print(person.age)  # 19
 print(person.salary)  # 5000
+```
+
+### find_all_tables
+
+``` python
+async def find_all_tables():
+```
+
+Asynchronous method that returns all table names persisted in the database
+of data.
+
+``` python
+print(await Person.find_all_tables())
+```
+
+### update
+
+``` python
+async def update(self, **kwargs) -> Model:
+```
+
+Asynchronous method to alter a record persisted in the database.
+
+- Parameters:
+    - `kwargs`: A dictionary with the `Model` fields that must be changed
+    and its new values.
+
+``` python
+person: Person = await Person.find_one(
+    conditions=[
+        Condition('id_teste', '=', 1)
+    ]
+)
+
+print(person.id_teste)  # 1
+
+person: Person = await person.update(first_name='Teste 1 UPDATE', age=22)
+
+print(person.id_teste) # 1
+print(person.first_name) # Teste 1 UPDATE
+print(person.age) # 22
+```
+
+### delete
+
+``` python
+async def delete(cls, conditions: List[Condition]):
+```
+
+Asynchronous method that deletes a record from the database.
+
+- Parameters:
+    - `conditions`: The conditions for filtering the record(s).
+
+``` python
+person: Person = await Person.delete(
+    conditions=[
+        Condition('id_teste', '=', 1)
+    ]
+)
 ```
