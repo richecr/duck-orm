@@ -20,7 +20,12 @@ nav:
     - Definition: "models/index.md"
     - Methods: "models/methods.md"
   - Fields:
-    - Tipos de Campos: "fields/index.md"
+    - Field Types: "fields/index.md"
+    - Relationships:
+        - Relationships: "fields/relationships.md"
+        - ForeignKey: "fields/foreignkey.md"
+        - OneToMany: "fields/one_to_many.md"
+        - ManyToMany: "fields/many_to_many.md"
 
 markdown_extensions:
   - admonition
