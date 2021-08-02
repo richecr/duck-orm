@@ -115,3 +115,58 @@ creating the relationship.
     like: `User` add a relationship with `WorkingDay` without using the
     `UsersWorkingDay` model. More examples can be seen [here](./many_to_many.md).
 
+## OneToOne
+
+- To represent the One to One relationship, just make use of the `OneToOne` field.
+
+``` python  hl_lines="16-20"
+class Person(Model):
+    __tablename__ = 'persons'
+    __db__ = db
+
+    id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
+    first_name: str = Field.String(unique=True)
+    last_name: str = Field.String(not_null=True)
+    age: int = Field.BigInteger()
+    salary: int = Field.BigInteger()
+
+
+class Contact(Model):
+    __tablename__ = 'contacts'
+    __db__ = db
+
+    id_person: Person = OneToOne(
+        model=Person,
+        name_relation='person_contact',
+        field='id_person'
+    )
+    phone: str = Field.String(not_null=True)
+
+await Person.create()
+await Contact.create()
+```
+
+We create the `Person` table and the `Contact` table. We use the `OneToOne` field.
+This field will be the `PK` of that table, being of the same type as the table in the
+relationship, in this case the same type as the `PK` of the `Person` model.
+
+To save a Contact record:
+
+``` python hl_lines="2 5"
+person_1 = Person(first_name="Rich", last_name="Ramalho", age=22, salary=1250)
+contact_person_1 = Contact(phone="XXXXXXXXX-XXXX", id_person=person_1)
+
+person_1 = await Person.save(person_1)
+contact_person_1 = await Contact.save(contact_person_1)
+```
+
+And with that, `DuckORM` will save the relationship contact record
+with this person. What happens if I try to save the same person again in a
+another contact?
+
+``` python hl_lines="3 4"
+contact_error = Contact(phone="YYYYYYYYY-YYYY", id_person=person_1)
+
+await Contact.save(contact_error) # This line will throw a duplicate 
+                                  # record exception.
+```

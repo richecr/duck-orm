@@ -22,7 +22,7 @@ nav:
   - Fields:
     - Field Types: "fields/index.md"
     - Relationships:
-        - Relationships: "fields/relationships.md"
+        - Relations: "fields/relations.md"
         - ForeignKey: "fields/foreignkey.md"
         - OneToMany: "fields/one_to_many.md"
         - ManyToMany: "fields/many_to_many.md"
