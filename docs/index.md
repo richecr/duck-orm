@@ -49,14 +49,14 @@ class Person(Model):
     last_name: str = Field.String(not_null=True)
     age: int = Field.BigInteger(min_value=18)
 
-# creation of the table in the database.
+# Table creation in the database.
 await Person.create()
 ```
 
-- The `__tablename__` attribute is used to define the name of the table in the database.
+- The `__tablename__` attribute is used to define the table's name in the database.
 - The `__db__` attribute is the instance of the database connection.
 - And then the definition of the fields, their types and restrictions.
-- And finally, the creation of the table in the database.
+- And finally, the table creation in the database.
 
 ## License
 

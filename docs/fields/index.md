@@ -6,7 +6,7 @@ So far we only have 5 types available and 5 special types: `ForeignKey`,
 These special types are for relationships between database tables.
 
 !!! tip
-    Para mais detalhes sobre os campos de relacionamento, consulte [aqui](./relationships.md)
+    For more details on relationship fields, see [here](./relationships.md)
 
 ## Common Types:
 

@@ -16,7 +16,7 @@ this method will return the class name in lowercase.
 class Person(Model):
     __db__ = db
 
-    id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
+    id: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
 
 Person.get_name() # will return 'person'.
@@ -34,7 +34,7 @@ Client.get_name() # Will return 'clients'.
 ## create
 
 Asynchronous method that will create the table that represents the `Model` 
-in the database of data.
+in the database.
 
 It should always be used **before** trying to save, search or delete an object
 of the `Model`.
@@ -44,7 +44,7 @@ class Person(Model):
     __tablename__ = 'persons'
     __db__ = db
 
-    id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
+    id: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
     age: int = Field.BigInteger(min_value=18)
@@ -129,7 +129,7 @@ persons: list[Person] = await Person.find_all(
 )
 
 for person in persons:
-    print(person.id_teste)  # None em todos.
+    print(person.id)  # None in all.
     print(person.first_name)  # Teste 1, Teste 2
     print(person.age)  # 19, 25
     print(person.salary)  # 5000, 4000
@@ -138,7 +138,7 @@ for person in persons:
 ### find_one
 
 ``` python
-find_all(
+find_one(
     fields_includes: List[str] = [],
     fields_excludes: List[str] = [],
     conditions: List[Condition] = [],
@@ -157,11 +157,11 @@ method can be used as a find by id.
 ``` python
 person: Person = await Person.find_one(
     conditions=[
-        Condition('id_teste', '=', 1)
+        Condition('id', '=', 1)
     ]
 )
 
-print(person.id_teste)  # 1
+print(person.id)  # 1
 print(person.first_name)  # Teste 1
 print(person.last_name)  # teste lastname
 print(person.age)  # 19
@@ -174,8 +174,7 @@ print(person.salary)  # 5000
 async def find_all_tables():
 ```
 
-Asynchronous method that returns all table names persisted in the database
-of data.
+Asynchronous method that returns all table names persisted in the database.
 
 ``` python
 print(await Person.find_all_tables())
@@ -184,7 +183,7 @@ print(await Person.find_all_tables())
 ### update
 
 ``` python
-async def update(self, **kwargs) -> Model:
+async def update(**kwargs) -> Model:
 ```
 
 Asynchronous method to alter a record persisted in the database.
@@ -196,15 +195,15 @@ Asynchronous method to alter a record persisted in the database.
 ``` python
 person: Person = await Person.find_one(
     conditions=[
-        Condition('id_teste', '=', 1)
+        Condition('id', '=', 1)
     ]
 )
 
-print(person.id_teste)  # 1
+print(person.id)  # 1
 
 person: Person = await person.update(first_name='Teste 1 UPDATE', age=22)
 
-print(person.id_teste) # 1
+print(person.id) # 1
 print(person.first_name) # Teste 1 UPDATE
 print(person.age) # 22
 ```
@@ -212,7 +211,7 @@ print(person.age) # 22
 ### delete
 
 ``` python
-async def delete(cls, conditions: List[Condition]):
+async def delete(conditions: List[Condition]):
 ```
 
 Asynchronous method that deletes a record from the database.
@@ -223,7 +222,7 @@ Asynchronous method that deletes a record from the database.
 ``` python
 person: Person = await Person.delete(
     conditions=[
-        Condition('id_teste', '=', 1)
+        Condition('id', '=', 1)
     ]
 )
 ```

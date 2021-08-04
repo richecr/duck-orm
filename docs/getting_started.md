@@ -8,11 +8,12 @@ pip install duck-orm
 
 ### Dependencies
 
-DuckORM uses `databases` for database connection.
+`DuckORM` uses `databases` for database connection.
 
 ### Extras dependencies
 
-DuckORM has 3 dependencies that depend on the backend database you want to use:
+`DuckORM` can have up to 3 dependencies according to the backend database(s) 
+you want to use:
 
 #### Postgresql
 
@@ -40,9 +41,9 @@ Will install also `aiosqlite`.
 
 ### Install dependencies manually
 
-Se desejar, pode instalar as dependências manualmente também.
+If you wish, you can install the dependencies manually as well.
 
-Exemplo:
+Example:
 
 ```bash
 pip install asyncpg

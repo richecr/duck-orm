@@ -48,10 +48,10 @@ And with that, it will create the two tables and the `persons` table will have
 a field referencing the `id` field of the `cities` table.
 
 !!! note
-    You may have also noticed the `relationships` method in the `City` class. But
-    what will this be?
+    You may have also noticed the method `relationships` in the `City` class, 
+    but what will this do?
 
-    This method doesn't do anything else, it doesn't make any changes to the database, just
+    This method doesn't make any changes to the database, just
     adds the `persons: OneToMany` field to the class, this field has some methods
     which are explained [here](./one_to_many.md). 
 
@@ -100,7 +100,7 @@ await WorkingDay.create()
 await UsersWorkingDay.create()
 ```
 
-First we create the `User` and 'WorkingDay` tables, they have a Many to Many
+First we create the `User` and `WorkingDay` tables, they have a Many to Many
 relationship. To represent this relationship we create a third `UsersWorkingDay`
 table that has a reference to the `PK` of the other two tables, and thus 
 creating the relationship.

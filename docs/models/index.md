@@ -16,7 +16,7 @@ class Person(Model):
     __tablename__ = 'persons'
     __db__ = db
 
-    id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
+    id: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
     age: int = Field.BigInteger(min_value=18)
@@ -32,7 +32,7 @@ await Person.create()
 
 ## Definition of fields
 
-And then just define the table [fields](../fields.md).
+And then just define the table [fields](../fields/index.md).
 
 ### Basic Types
 
@@ -59,13 +59,12 @@ class Person(Model):
 
 ## Dependencies
 
-DuckORM has a dependency on `databases` for connecting to the database.
-data, you need to assign a `Model` a parameter.
+`DuckORM` depends on `databases` library to connect to the database.
 
 ### Databases
 
-This parameter is `__db__`, it is the instance created with your database URL
-of data.
+This parameter is `it `, and it is the instance create, bith your database 
+URL string.
 
 This instance needs to be passed to the `Model`.
 
@@ -83,7 +82,7 @@ class Person(Model):
     __tablename__ = 'persons'
     __db__ = db
 
-    id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
+    id: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
     age: int = Field.BigInteger(min_value=18)
@@ -92,20 +91,20 @@ class Person(Model):
 
 !!! tip
     You must create the `databases` instance **only once** and then
-    use for all models of your system. But nothing stops you from creating
-    **multiple instances**, if you want to use **multiple databases**.
+    use it for all models of your system, but nothing stops you from creating
+    **multiple instances**Another important parameter is __tablename__, which is used to set the name of your Model in the database. if you want to use **multiple databases**.
 
 ### Table names
 
-Another important parameter is `__tablename__`, it is used to set the
-name of your `Model` in the database.
+Another important parameter is `__tablename__`, which is used to set the name
+ of your Model in the database.
 
 ``` python hl_lines="2"
 class Person(Model):
     __tablename__ = 'persons'
     __db__ = db
 
-    id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
+    id: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
     age: int = Field.BigInteger(min_value=18)
