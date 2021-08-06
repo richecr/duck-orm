@@ -10,7 +10,7 @@ jobs:
             python setup.py sdist bdist_wheel
   test_pypi_publish:
     docker:
-      - image: circleci/python:3.6.4
+      - image: circleci/python:3.8
     steps:
       - checkout  # checkout source code to working directory
       - run:
@@ -22,7 +22,7 @@ jobs:
             poetry run twine upload --repository testpypi dist/*
   pypi_publish:
     docker:
-      - image: circleci/python:3.6.4
+      - image: circleci/python:3.8
     steps:
       - checkout  # checkout source code to working directory
       - run:
