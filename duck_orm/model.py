@@ -90,7 +90,7 @@ class Model:
                     field_name, field_id = field.model.get_id()
                     table_name = field.model.get_name()
                     fields.append((name, field_id.column_sql(dialect)))
-                    fields.append(('', field.sql(dialect, table_name)))
+                    fields.append(('', field.sql(dialect, name, table_name)))
                 else:
                     fields.insert(0, (name, field.column_sql(dialect)))
 

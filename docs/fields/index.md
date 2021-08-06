@@ -1,7 +1,7 @@
 # Fields
 
 So far we only have 5 types available and 5 special types: `ForeignKey`, 
-`OneToMany`, `ManyToOne`, `OneToOne` and `ManyToMany`.
+`OneToMany`, `OneToOne` and `ManyToMany`.
 
 These special types are for relationships between database tables.
 

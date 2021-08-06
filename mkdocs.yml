@@ -24,6 +24,7 @@ nav:
     - Relationships:
         - Relations: "fields/relations.md"
         - ForeignKey: "fields/foreignkey.md"
+        - OneToOne: "fields/one_to_one.md"
         - OneToMany: "fields/one_to_many.md"
         - ManyToMany: "fields/many_to_many.md"
 

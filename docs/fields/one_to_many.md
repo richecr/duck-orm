@@ -3,7 +3,7 @@
 This field is to represent the One to Many relationship.
 Let's look at some methods this field allows.
 
-First let's create our models.
+- The interface of a field `OneToMany`:
 
 ``` python
 OneToMany(model: Model, name_in_table_fk: str, name_relation: str):
@@ -14,6 +14,28 @@ OneToMany(model: Model, name_in_table_fk: str, name_relation: str):
     - `name_in_table_fk`: The name of the attribute that will be `FK` in 
     the other template.
     - `name_relation`: The name of the database-level relationship.
+
+## Methods
+
+Methods that are supported by the ManyToMany field.
+
+### add
+
+Método que deve ser chamado de uma instância do modelo da lado do 
+relacionamento N.
+
+```python
+async def add(model: Type[Model]) -> Model:
+```
+
+- Parameters:
+    - `model`: An instance of the `Model` of the relation.
+
+## Examples
+
+First, let's create our models.
+
+Examples of using the methods explained above.
 
 ``` python
 class City(Model):
@@ -59,7 +81,7 @@ city_cg = await City.save(city_cg)
 person_1 = await Person.save(person_1)
 person_2 = await Person.save(person_2)
 
-persons: list[Person] = await city.persons.get_all() # Retorna todas as pessoas dessa cidade.
+persons: list[Person] = await city.persons.get_all() # Return all the people in this city
 
 for person in persons:
     print(person.first_name) # Rich and Elton

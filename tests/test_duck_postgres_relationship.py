@@ -45,10 +45,7 @@ class Contact(Model):
     __tablename__ = 'contacts'
     __db__ = db
 
-    id_person: Person = OneToOne(
-        model=Person,
-        name_relation='person_contact',
-        field='id_person')
+    id_person: Person = OneToOne(model=Person, name_relation='person_contact')
     phone: str = Field.String(not_null=True)
 
 

@@ -9,9 +9,9 @@ relate the two tables.
 
 Let's look at some examples of using these fields.
 
-## ForeignKey
+## OneToMany
 
-- Set the `ForeignKey` field to use a One-to-Many relationship.
+- Set the [ForeignKey](./foreignkey.md) field to use a One-to-Many relationship.
 
 ``` python hl_lines="25"
 class City(Model):
@@ -58,7 +58,7 @@ a field referencing the `id` field of the `cities` table.
 
 ## ManyToMany
 
-- To create a Many to Many relationship we also use the `ForeignKey` field.
+- To create a [Many to Many](./many_to_many.md) relationship we also use the `ForeignKey` field.
 
 ``` python  hl_lines="32-33"
 class User(Model):
@@ -117,7 +117,7 @@ creating the relationship.
 
 ## OneToOne
 
-- To represent the One to One relationship, just make use of the `OneToOne` field.
+- To represent the [One to One](./one_to_one.md) relationship, just make use of the `OneToOne` field.
 
 ``` python  hl_lines="16-20"
 class Person(Model):

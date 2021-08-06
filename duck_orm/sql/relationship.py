@@ -88,21 +88,18 @@ class OneToOne(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, model: Type[Model], name_relation: str, field: str):
+    def __init__(self, model: Type[Model], name_relation: str):
         self.model = model
         if not name_relation:
             raise Exception('Attribute name_relation is mandatory')
-        if not field:
-            raise Exception('Attribute field is mandatory')
         self.name_relation = name_relation
-        self.field = field
         super().__init__('OneToOne', primary_key=True)
 
-    def sql(self, dialect: str, name_table: str):
+    def sql(self, dialect: str, field_name: str, name_table: str):
         generator_sql = get_dialect(dialect)
         name_relationship = self.model.get_id()[0]
         sql = generator_sql.add_foreing_key_column(
-            self.field, name_table, name_relationship)
+            field_name, name_table, name_relationship)
         return sql
 
 
