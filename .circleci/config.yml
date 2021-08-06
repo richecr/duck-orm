@@ -8,9 +8,6 @@ jobs:
       - run:
           command: |  # create whl and use pipenv to install dependencies
             python setup.py sdist bdist_wheel
-      - run:
-          command: |  # Run test suite
-            pipenv run pytest
   test_pypi_publish:
     docker:
       - image: circleci/python:3.6.4
