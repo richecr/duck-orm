@@ -25,7 +25,7 @@ class Person(Model):
     id: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
-    age: int = Field.Integer(min_value=18)
+    age: int = Field.Integer()
     salary: int = Field.BigInteger()
 
 

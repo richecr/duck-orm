@@ -7,12 +7,13 @@ from duck_orm.sql.postgres import TYPES_SQL as TYPES_SQL_POSTGRES
 class Column:
     def __init__(self, type_column: str, unique: bool = False,
                  primary_key: bool = False, not_null: bool = False,
-                 auto_increment: bool = False):
+                 auto_increment: bool = False, default_value=None):
         self.unique = unique
         self.primary_key = primary_key
         self.not_null = not_null
         self.type = type_column
         self.auto_increment = auto_increment
+        self.default_value = default_value
 
     def type_sql(self, dialect: str) -> str:
         column_sql = self.get_dialect(dialect)[self.type]
@@ -31,6 +32,8 @@ class Column:
             column_sql += " NOT NULL"
         if (self.unique):
             column_sql += " UNIQUE"
+        if (self.default_value):
+            column_sql += f" DEFAULT '{self.default_value}'"
 
         return column_sql
 
@@ -45,33 +48,39 @@ class Column:
 
 class String(Column, str):
     def __new__(cls, **kwargs):
-        return super().__new__(cls, 'str')
+        return super().__new__(cls)
 
-    def __init__(self, min_length: int = 1, unique: bool = False,
-                 primary_key: bool = False, not_null: bool = False):
-        self.min_length = min_length
-        super().__init__('str', unique, primary_key, not_null)
+    def __init__(self, unique: bool = False,
+                 primary_key: bool = False, not_null: bool = False,
+                 default_value=None):
+        super().__init__(
+            'str', unique, primary_key, not_null, default_value=default_value)
 
 
 class Integer(Column, int):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, min_value: int = None, unique: bool = False,
-                 primary_key: bool = False, auto_increment: bool = False,
-                 not_null: bool = False):
+    def __init__(
+        self, min_value: int = None, unique: bool = False,
+        primary_key: bool = False, auto_increment: bool = False,
+        not_null: bool = False, default_value=None
+    ):
         self.min_value = min_value
-        super().__init__('int', unique, primary_key,
-                         auto_increment=auto_increment, not_null=not_null)
+        super().__init__(
+            'int', unique, primary_key, auto_increment=auto_increment,
+            not_null=not_null, default_value=default_value
+        )
 
 
 class BigInteger(Column, int):
-    def __new__(cls, min_value: int = None, **kwargs):
+    def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, min_value: int = None, unique: bool = False,
-                 primary_key: bool = False):
-        super().__init__('bigint', unique, primary_key)
+    def __init__(self, unique: bool = False, primary_key: bool = False,
+                 default_value=None):
+        super().__init__(
+            'bigint', unique, primary_key, default_value=default_value)
 
 
 class Varchar(Column, str):
@@ -79,10 +88,20 @@ class Varchar(Column, str):
         return super().__new__(cls)
 
     def __init__(self, length: int, unique: bool = False,
-                 primary_key: bool = False):
+                 primary_key: bool = False, default_value=None):
         self.length = length
-        super().__init__('varchar', unique, primary_key)
+        super().__init__(
+            'varchar', unique, primary_key, default_value=default_value)
 
     def column_sql(self, dialect: str):
         column_sql = super().column_sql(dialect)
         return column_sql.format(length=self.length)
+
+
+class Boolean(Column):
+    def __new__(cls, **kwargs):
+        return super().__new__(cls)
+
+    def __init__(self, not_null: bool = False, default_value=None):
+        super().__init__(
+            'boolean', not_null=not_null, default_value=default_value)

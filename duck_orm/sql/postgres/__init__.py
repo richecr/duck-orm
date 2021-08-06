@@ -9,7 +9,8 @@ TYPES_SQL = {
     'bigint': 'BIGINT',
     'float': 'FLOAT',
     'varchar': 'VARCHAR({length})',
-    'char': 'CHARACTER({length})'
+    'char': 'CHARACTER({length})',
+    'boolean': 'BOOLEAN'
 }
 
 

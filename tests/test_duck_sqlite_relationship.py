@@ -19,9 +19,8 @@ class City(Model):
         auto_increment=True)
     name: str = Field.String(unique=True)
 
-    @classmethod
-    def relationships(cls):
-        cls.persons = OneToMany(
+    def relationships(self):
+        self.persons = OneToMany(
             model=Person,
             name_in_table_fk='city',
             name_relation='person_city')
@@ -36,19 +35,16 @@ class Person(Model):
         auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
-    age: int = Field.BigInteger(min_value=18)
+    age: int = Field.BigInteger()
     salary: int = Field.BigInteger()
-    city: City = ManyToOne(model=City)
+    city: City = ForeignKey(model=City, name_in_table_fk='id')
 
 
 class Contact(Model):
     __tablename__ = 'contacts'
     __db__ = db
 
-    id_person = OneToOne(
-        model=Person,
-        name_relation='person_contact',
-        field='id_person')
+    id_person = OneToOne(model=Person, name_relation='person_contact')
     phone: str = Field.String(not_null=True)
 
 
@@ -83,8 +79,7 @@ class UsersWorkingDay(Model):
     __db__ = db
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
-    users: User = ForeignKey(
-        model=User, name_in_table_fk='id')
+    users: User = ForeignKey(model=User, name_in_table_fk='id')
     working_days: WorkingDay = ForeignKey(
         model=WorkingDay, name_in_table_fk='id')
 
@@ -111,7 +106,7 @@ def test_model_class():
     assert User.get_name() == 'users'
     assert WorkingDay.get_name() == 'working_days'
     assert UsersWorkingDay.get_name() == 'users_working_days'
-    assert isinstance(Person.city, ManyToOne)
+    assert isinstance(Person.city, ForeignKey)
     assert isinstance(UsersWorkingDay.users, ForeignKey)
     assert isinstance(UsersWorkingDay.working_days, ForeignKey)
 
@@ -123,8 +118,9 @@ def test_create_sql():
         "last_name TEXT NOT NULL, " + \
         "id_teste INTEGER PRIMARY KEY AUTOINCREMENT, " + \
         "first_name TEXT UNIQUE, " + \
+        "city INTEGER, " + \
         "age BIGINT, " + \
-        "city INTEGER);"
+        " FOREIGN KEY (city) REFERENCES cities (id));"
 
 
 def get_table(table, tables):
@@ -144,12 +140,12 @@ async def test_create_table():
     await WorkingDay.create()
     await UsersWorkingDay.create()
 
-    await City.associations()
-    await Person.associations()
-    await Contact.associations()
-    await User.associations()
-    await WorkingDay.associations()
-    await UsersWorkingDay.associations()
+    # await City.associations()
+    # await Person.associations()
+    # await Contact.associations()
+    # await User.associations()
+    # await WorkingDay.associations()
+    # await UsersWorkingDay.associations()
 
     tables = await Person.find_all_tables()
     assert get_table('persons', tables)

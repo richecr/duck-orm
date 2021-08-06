@@ -20,9 +20,8 @@ class City(Model):
         auto_increment=True)
     name: str = Field.String(unique=True)
 
-    @classmethod
-    def relationships(cls):
-        cls.persons = OneToMany(
+    def relationships(self):
+        self.persons = OneToMany(
             model=Person,
             name_in_table_fk='city',
             name_relation='person_city')
@@ -37,19 +36,16 @@ class Person(Model):
         auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
-    age: int = Field.BigInteger(min_value=18)
+    age: int = Field.BigInteger()
     salary: int = Field.BigInteger()
-    city: City = ManyToOne(model=City)
+    city: City = ForeignKey(model=City, name_in_table_fk='id')
 
 
 class Contact(Model):
     __tablename__ = 'contacts'
     __db__ = db
 
-    id_person: Person = OneToOne(
-        model=Person,
-        name_relation='person_contact',
-        field='id_person')
+    id_person: Person = OneToOne(model=Person, name_relation='person_contact')
     phone: str = Field.String(not_null=True)
 
 
@@ -84,8 +80,7 @@ class UsersWorkingDay(Model):
     __db__ = db
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
-    users: User = ForeignKey(
-        model=User, name_in_table_fk='id')
+    users: User = ForeignKey(model=User, name_in_table_fk='id')
     working_days: WorkingDay = ForeignKey(
         model=WorkingDay, name_in_table_fk='id')
 
@@ -111,7 +106,7 @@ def test_model_class():
     assert User.get_name() == 'users'
     assert WorkingDay.get_name() == 'working_days'
     assert UsersWorkingDay.get_name() == 'users_working_days'
-    assert isinstance(Person.city, ManyToOne)
+    assert isinstance(Person.city, ForeignKey)
     assert isinstance(UsersWorkingDay.users, ForeignKey)
     assert isinstance(UsersWorkingDay.working_days, ForeignKey)
 
@@ -123,8 +118,9 @@ def test_create_sql():
         "last_name TEXT NOT NULL, " + \
         "id_teste SERIAL PRIMARY KEY, " + \
         "first_name TEXT UNIQUE, " + \
+        "city INTEGER, " + \
         "age BIGINT, " + \
-        "city INTEGER);"
+        " FOREIGN KEY (city) REFERENCES cities (id));"
 
 
 def get_table(table, tables):
@@ -134,7 +130,7 @@ def get_table(table, tables):
     return False
 
 
-@async_decorator
+@ async_decorator
 async def test_create_table():
     await db.connect()
     await City.create()
@@ -144,12 +140,12 @@ async def test_create_table():
     await WorkingDay.create()
     await UsersWorkingDay.create()
 
-    await City.associations()
-    await Person.associations()
-    await Contact.associations()
-    await User.associations()
-    await WorkingDay.associations()
-    await UsersWorkingDay.associations()
+    # await City.associations()
+    # await Person.associations()
+    # await Contact.associations()
+    # await User.associations()
+    # await WorkingDay.associations()
+    # await UsersWorkingDay.associations()
 
     tables = await Person.find_all_tables()
     assert get_table('persons', tables)
@@ -160,7 +156,7 @@ async def test_create_table():
     assert get_table('users_working_days', tables)
 
 
-@async_decorator
+@ async_decorator
 async def test_save_city():
     global city_cg
     global city_kh
@@ -173,7 +169,7 @@ async def test_save_city():
     assert city_cg.name == 'Campina Grande'
 
 
-@async_decorator
+@ async_decorator
 async def test_save_person():
     global person_1
     global person_2
@@ -199,7 +195,7 @@ async def test_save_person():
     assert person_3.city.name == 'Konoha'
 
 
-@async_decorator
+@ async_decorator
 async def test_save_contact():
     global contact_person_1
     global contact_person_2
@@ -219,7 +215,7 @@ async def test_save_contact():
         contact_error = await Contact.save(contact_error)
 
 
-@async_decorator
+@ async_decorator
 async def test_save_users():
     global user, user1, user2
 
@@ -238,13 +234,15 @@ async def test_save_users():
     assert user2.name == 'Rich 2'
 
 
-@async_decorator
+@ async_decorator
 async def test_save_working_days():
     global working_day, working_day1, working_day2
 
     working_day = WorkingDay(week_day='segunda', working_date='17/05/1999')
-    working_day1 = WorkingDay(week_day='segunda 1', working_date='17/06/1999')
-    working_day2 = WorkingDay(week_day='segunda 2', working_date='17/07/1999')
+    working_day1 = WorkingDay(week_day='segunda 1',
+                              working_date='17/06/1999')
+    working_day2 = WorkingDay(week_day='segunda 2',
+                              working_date='17/07/1999')
     working_day = await WorkingDay.save(working_day)
     working_day1 = await WorkingDay.save(working_day1)
     working_day2 = await WorkingDay.save(working_day2)
@@ -259,7 +257,7 @@ async def test_save_working_days():
     assert working_day2.working_date == '17/07/1999'
 
 
-@async_decorator
+@ async_decorator
 async def test_save_users_working_days():
     await User.working_day.add_models(working_day, user)
     await User.working_day.add_models(working_day, user1)
@@ -277,7 +275,7 @@ async def test_save_users_working_days():
     assert working_days[2].week_day == 'segunda 2'
 
 
-@async_decorator
+@ async_decorator
 async def test_drop_table():
     await Contact.drop_table()
     await Person.drop_table()

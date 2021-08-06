@@ -1,0 +1,36 @@
+site_name: Duck-ORM
+site_description: Async database support for Python.
+
+google_analytics:
+  - UA-72514911-3
+  - auto
+theme:
+  name: "material"
+  palette:
+    primary: indigo
+
+repo_name: richecr/duck-orm
+repo_url: https://github.com/richecr/duck-orm
+# edit_uri: ""
+
+nav:
+  - Introduction: "index.md"
+  - Getting Started: "getting_started.md"
+  - Models:
+    - Definition: "models/index.md"
+    - Methods: "models/methods.md"
+  - Fields:
+    - Field Types: "fields/index.md"
+    - Relationships:
+        - Relations: "fields/relations.md"
+        - ForeignKey: "fields/foreignkey.md"
+        - OneToOne: "fields/one_to_one.md"
+        - OneToMany: "fields/one_to_many.md"
+        - ManyToMany: "fields/many_to_many.md"
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      linenums: true
