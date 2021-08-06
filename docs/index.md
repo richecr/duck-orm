@@ -1,4 +1,4 @@
-# Duck ORM
+# DuckORM
 
 The `Duck-ORM` package is an asynchronous ORM for Python, with support for **Postgres** and **SQLite**. ORM is built with:
 
