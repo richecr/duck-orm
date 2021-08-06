@@ -38,8 +38,8 @@ setup(
     long_description_content_type="text/markdown",
     packages=get_packages("duck_orm"),
     install_requires=[
-        "databases" >= "0.4.3",
-        "sqlalchemy" >= "1.3.24",
+        "databases>=0.4.3",
+        "sqlalchemy>=1.3.24",
     ],
     extras_require={
         "postgresql": ["asyncpg"],
