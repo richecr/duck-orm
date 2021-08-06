@@ -16,4 +16,4 @@ OneToOne(model: Model, name_relation: str):
 
 ## Examples
 
-Os exemplos para esse tipo de relacionamentos podem ser encontrados [aqui](./relations.md#onetoone)
+Examples for these types of relationships can be found [here](./relations.md#onetoone)

@@ -14,6 +14,9 @@ The `Duck-ORM` package is an asynchronous ORM for Python, with support for **Pos
 $ pip install duck-orm
 ```
 
+!!! note
+    Don't forget to install `databases` before installing `duck-orm`. 
+
 ## Quickstart
 
 For this example we will create a connection to the SQLite database and create a model.

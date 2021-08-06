@@ -6,6 +6,12 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 
+with open("./requirements.txt", "r") as f:
+    requirements = []
+    for line in f:
+        requirements.append(line.strip())
+
+
 def get_version(package):
     """
     Return package version as listed in `__version__` in `init.py`.
@@ -37,10 +43,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=get_packages("duck_orm"),
-    install_requires=[
-        "databases>=0.4.3",
-        "sqlalchemy>=1.3.24",
-    ],
+    install_requires=requirements,
     extras_require={
         "postgresql": ["asyncpg"],
         "postgresql+aiopg": ["aiopg"],
