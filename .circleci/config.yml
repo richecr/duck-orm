@@ -62,6 +62,7 @@ workflows:
                     branches:
                         only:
                             - develop
+                            - main
             # - pypi_publish:
             #     requires:
             #         - build_test
