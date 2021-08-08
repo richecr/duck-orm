@@ -11,10 +11,10 @@ jobs:
     test_pypi_publish:
         docker:
             - image: circleci/python:3.9
-            auth:
+              auth:
                 username: richelton
                 password: $DOCKERHUB_PASSWORD
-            environment:
+              environment:
                 DATABASE_TEST_URL: bjlqxrfbgjziix:540871a112cb27f22db6362d21247c8e6def2b6c8fc44c175d9a905fff7e3036@ec2-54-87-112-29.compute-1.amazonaws.com:5432/d8si2o92a0sqq2
         steps:
             - checkout  # checkout source code to working directory
@@ -60,8 +60,8 @@ workflows:
                     - build_test
                 filters:
                     branches:
-                    only:
-                        - develop
+                        only:
+                            - develop
             # - pypi_publish:
             #     requires:
             #         - build_test
