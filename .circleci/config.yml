@@ -1,52 +1,71 @@
 version: 2.1
 jobs:
-  build_test:
-    docker:
-      - image: circleci/python:3.6.4
-    steps:
-      - checkout  # checkout source code to working directory
-      - run:
-          command: |  # create whl and use pipenv to install dependencies
-            python setup.py sdist bdist_wheel
-  test_pypi_publish:
-    docker:
-      - image: circleci/python:3.8
-    steps:
-      - checkout  # checkout source code to working directory
-      - run:
-          command: |  # create whl, install twine and publish to Test PyPI
-            python setup.py sdist bdist_wheel
-            curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-            source $HOME/.poetry/env
-            poetry add twine
-            poetry run twine upload --repository testpypi dist/*
-  pypi_publish:
-    docker:
-      - image: circleci/python:3.8
-    steps:
-      - checkout  # checkout source code to working directory
-      - run:
-          command: |  # create whl, install twine and publish to PyPI
-            python setup.py sdist bdist_wheel
-            curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-            source $HOME/.poetry/env
-            poetry add twine
-            poetry run twine upload dist/*
+    build_test:
+        docker:
+            - image: circleci/python:3.9
+        steps:
+            - checkout
+            - run:
+                command: |  # create whl and use pipenv to install dependencies
+                    python setup.py sdist bdist_wheel
+    test_pypi_publish:
+        docker:
+            - image: circleci/python:3.9
+            auth:
+                username: richelton
+                password: $DOCKERHUB_PASSWORD
+            environment:
+                DATABASE_TEST_URL: bjlqxrfbgjziix:540871a112cb27f22db6362d21247c8e6def2b6c8fc44c175d9a905fff7e3036@ec2-54-87-112-29.compute-1.amazonaws.com:5432/d8si2o92a0sqq2
+        steps:
+            - checkout  # checkout source code to working directory
+            - setup_remote_docker:
+                version: 19.03.13
+            - restore_cache:
+                keys: 
+                    - deps-{{ checksum "poetry.lock" }}
+
+            # Let's install the dependencies
+            - run:
+                name: Install Dependencies
+                command: |
+                    poetry install
+
+            - save_cache:
+                key: deps-{{ checksum "poetry.lock" }}
+                paths: 
+                    - /home/circleci/.cache/pypoetry/virtualenvs
+
+            - run:
+                name: Run Pytest
+                command: |
+                    poetry run pytest
+    pypi_publish:
+        docker:
+            - image: circleci/python:3.8
+        steps:
+            - checkout  # checkout source code to working directory
+            - run:
+                command: |  # create whl, install twine and publish to PyPI
+                    python setup.py sdist bdist_wheel
+                    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+                    source $HOME/.poetry/env
+                    poetry add twine
+                    poetry run twine upload dist/*
 workflows:
-  build_test_publish:
-    jobs:
-      - build_test
-    #   - test_pypi_publish:
-    #       requires:
-    #         - build_test
-    #       filters:
-    #         branches:
-    #           only:
-    #             - develop
-      - pypi_publish:
-          requires:
+    build_test_publish:
+        jobs:
             - build_test
-          filters:
-            branches:
-              only:
-                - main
+            - test_pypi_publish:
+                requires:
+                    - build_test
+                filters:
+                    branches:
+                    only:
+                        - develop
+            # - pypi_publish:
+            #     requires:
+            #         - build_test
+            #     filters:
+            #         branches:
+            #         only:
+            #             - main

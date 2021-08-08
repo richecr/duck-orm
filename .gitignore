@@ -3,3 +3,4 @@ example.db
 __pycache__/
 Main.py
 .coverage
+.env

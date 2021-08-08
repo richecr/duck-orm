@@ -1,14 +1,20 @@
 from databases.core import Database
+from dotenv import load_dotenv
 import functools
 import asyncio
 import pytest
+import os
 
 from duck_orm.model import Model
 from duck_orm.sql import fields as Field
 from duck_orm.sql.relationship import (
     ForeignKey, ManyToMany, ManyToOne, OneToOne, OneToMany)
 
-db = Database('postgresql://postgres:arquinator2020@localhost:5432/orm')
+load_dotenv()
+database_url = os.getenv('DATABASE_TEST_URL')
+
+db = Database(
+    f'postgresql://{database_url}')
 
 
 class City(Model):
