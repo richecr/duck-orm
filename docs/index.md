@@ -32,7 +32,7 @@ Note that we want to use `ipython` here, because it supports using await express
 
 ```Python
 from databases import Database
-from duck_orm.Model import Model
+from duck_orm.model import Model
 
 db = Database('sqlite:///example.db')
 await db.connect()
