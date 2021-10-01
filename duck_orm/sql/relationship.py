@@ -6,13 +6,19 @@ from duck_orm.sql.fields import Column, ActionsEnum
 from duck_orm.sql.condition import Condition
 from duck_orm.utils.functions import get_dialect
 
+
 class ForeignKey(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, model: Type[Model], name_in_table_fk: str,
-                 unique: bool = False, on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value, on_update: ActionsEnum = ActionsEnum.CASCADE.value):
-        
+    def __init__(
+            self,
+            model: Type[Model],
+            name_in_table_fk: str,
+            unique: bool = False,
+            on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
+            on_update: ActionsEnum = ActionsEnum.CASCADE.value
+    ) -> None:
         self.validate_action(on_delete, on_update)
 
         self.model = model
@@ -92,8 +98,13 @@ class OneToOne(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, model: Type[Model], name_relation: str,  on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value, on_update: ActionsEnum = ActionsEnum.CASCADE.value):
-        
+    def __init__(
+            self,
+            model: Type[Model],
+            name_relation: str,
+            on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
+            on_update: ActionsEnum = ActionsEnum.CASCADE.value
+    ) -> None:
         self.validate_action(on_delete, on_update)
         if not name_relation:
             raise Exception('Attribute name_relation is mandatory')
