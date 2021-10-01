@@ -9,6 +9,7 @@ from duck_orm.model import Model
 from duck_orm.sql import fields as Field
 from duck_orm.sql.condition import Condition
 from duck_orm.exceptions import UpdateException
+from duck_orm.sql.relationship import ForeignKey
 
 load_dotenv()
 database_url = os.getenv('DATABASE_TEST_URL')
@@ -34,6 +35,15 @@ class Person(Model):
     age: int = Field.Integer()
     salary: int = Field.BigInteger()
 
+class Son(Model):
+    __tablename__ = 'sons'
+    __db__ = db
+
+    id: int = Field.Integer(primary_key=True, auto_increment=True)
+    first_name: str = Field.String(unique=True)
+    last_name: str = Field.String(not_null=True)
+    age: int = Field.Integer()
+    person_id: int = ForeignKey(model=Person, name_in_table_fk="id", on_delete="CASCADE", on_update="CASCADE")
 
 def async_decorator(func):
     """
@@ -65,6 +75,18 @@ def test_create_sql():
         "first_name TEXT UNIQUE, " + \
         "age INTEGER);"
 
+def test_create_sql_son():
+    sql = Son._Model__get_create_sql()
+
+    assert sql == "CREATE TABLE IF NOT EXISTS sons (" + \
+        "person_id INTEGER, " + \
+        "last_name TEXT NOT NULL, " + \
+        "id SERIAL PRIMARY KEY, " + \
+        "first_name TEXT UNIQUE, " + \
+        "age INTEGER," + \
+        "  FOREIGN KEY (person_id) REFERENCES persons (id) " + \
+        "ON DELETE CASCADE ON UPDATE CASCADE);"
+
 
 def get_table(table, tables):
     for tup in tables:
@@ -77,6 +99,7 @@ def get_table(table, tables):
 async def test_create_table():
     await db.connect()
     await Person.create()
+    await Son.create()
     await MyTest.create()
     tables = await Person.find_all_tables()
     assert get_table('persons', tables)
@@ -227,5 +250,6 @@ async def test_update_sql_without_id():
 
 @async_decorator
 async def test_drop_table():
+    await Son.drop_table()
     await Person.drop_table()
     await MyTest.drop_table()
