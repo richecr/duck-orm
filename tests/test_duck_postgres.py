@@ -35,6 +35,7 @@ class Person(Model):
     age: int = Field.Integer()
     salary: int = Field.BigInteger()
 
+
 class Son(Model):
     __tablename__ = 'sons'
     __db__ = db
@@ -43,7 +44,10 @@ class Son(Model):
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
     age: int = Field.Integer()
-    person_id: int = ForeignKey(model=Person, name_in_table_fk="id", on_delete="CASCADE", on_update="CASCADE")
+    person_id: int = ForeignKey(
+        model=Person, name_in_table_fk="id",
+        on_delete="CASCADE", on_update="CASCADE")
+
 
 def async_decorator(func):
     """
@@ -61,6 +65,7 @@ def async_decorator(func):
 
 def test_model_class():
     assert Person.get_name() == 'persons'
+    assert Son.get_name() == 'sons'
     assert MyTest.get_name() == 'mytest'
     assert isinstance(Person.first_name, Field.String)
     assert issubclass(Person, Model)
@@ -75,16 +80,16 @@ def test_create_sql():
         "first_name TEXT UNIQUE, " + \
         "age INTEGER);"
 
+
 def test_create_sql_son():
     sql = Son._Model__get_create_sql()
-
     assert sql == "CREATE TABLE IF NOT EXISTS sons (" + \
         "person_id INTEGER, " + \
         "last_name TEXT NOT NULL, " + \
         "id SERIAL PRIMARY KEY, " + \
         "first_name TEXT UNIQUE, " + \
-        "age INTEGER," + \
-        "  FOREIGN KEY (person_id) REFERENCES persons (id) " + \
+        "age INTEGER,  " + \
+        "FOREIGN KEY (person_id) REFERENCES persons (id) " + \
         "ON DELETE CASCADE ON UPDATE CASCADE);"
 
 

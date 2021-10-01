@@ -12,6 +12,10 @@ class ActionsEnum(Enum):
     SET_DEFAULT = "SET DEFAULT"
     SET_NULL = "SET NULL"
 
+    @classmethod
+    def has_value(cls, value):
+        return value in cls._value2member_map_
+
 
 class Column:
     def __init__(self, type_column: str, unique: bool = False,
@@ -55,14 +59,13 @@ class Column:
             return TYPES_SQL_LITE
 
     def validate_action(self, on_delete: str, on_update: str):
-        valid_on_delete = [member.value for _, member in ActionsEnum.__members__.items() if on_delete.lower() == member.value.lower()]
-        if not valid_on_delete:
-            raise Exception("ON DELETE with action {on_delete} is invalid".format(on_delete = on_delete))
+        if not ActionsEnum.has_value(on_delete):
+            message = "ON DELETE with action {on_delete} is invalid"
+            raise Exception(message.format(on_delete=on_delete))
 
-        valid_on_update = [member.value for _, member in ActionsEnum.__members__.items() if on_update.lower() == member.value.lower()]
-        if not valid_on_update:
-            raise Exception("ON UPDATE with action {on_update} is invalid.".format(on_update = on_update))
-
+        if not ActionsEnum.has_value(on_update):
+            message = "ON UPDATE with action {on_update} is invalid"
+            raise Exception(message.format(on_update=on_update))
 
 
 class String(Column, str):
