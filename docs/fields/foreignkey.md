@@ -6,13 +6,7 @@ Let's look at some methods this field allows.
 - The interface of a field `ForeignKey`:
 
 ``` python
-ForeignKey(
-    model: Model,
-    name_in_table_fk: str,
-    unique: bool = False,
-    on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
-    on_update: ActionsEnum = ActionsEnum.CASCADE.value
-):
+ForeignKey(model: Type[Model], name_in_table_fk: str, unique: bool = False):
 ```
 
 - Parameters:
@@ -20,10 +14,6 @@ ForeignKey(
     - `name_in_table_fk`: The name of the attribute that will be `FK` in 
     the other model.
     - `unique`: Whether this field is going to be a single value or not.
-    - `on_delete`: Action ON DELETE: `CASCADE`, `NO ACTION`, `RESTRICT`, 
-    `SET DEFAULT` and `SET NULL`.
-    - `on_update`: Action ON UPDATE: `CASCADE`, `NO ACTION`, `RESTRICT`, 
-    `SET DEFAULT` and `SET NULL`.
 
 ## Examples
 
