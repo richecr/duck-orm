@@ -1,7 +1,16 @@
 from typing import Dict
+from enum import Enum
 
 from duck_orm.sql.sqlite import TYPES_SQL as TYPES_SQL_LITE
 from duck_orm.sql.postgres import TYPES_SQL as TYPES_SQL_POSTGRES
+
+
+class ActionsEnum(Enum):
+    NO_ACTION = "NO ACTION"
+    RESTRICT = "RESTRICT"
+    CASCADE = "CASCADE"
+    SET_DEFAULT = "SET DEFAULT"
+    SET_NULL = "SET NULL"
 
 
 class Column:
@@ -44,6 +53,16 @@ class Column:
             return TYPES_SQL_LITE
         else:
             return TYPES_SQL_LITE
+
+    def validate_action(self, on_delete: str, on_update: str):
+        valid_on_delete = [member.value for _, member in ActionsEnum.__members__.items() if on_delete.lower() == member.value.lower()]
+        if not valid_on_delete:
+            raise Exception("ON DELETE with action {on_delete} is invalid".format(on_delete = on_delete))
+
+        valid_on_update = [member.value for _, member in ActionsEnum.__members__.items() if on_update.lower() == member.value.lower()]
+        if not valid_on_update:
+            raise Exception("ON UPDATE with action {on_update} is invalid.".format(on_update = on_update))
+
 
 
 class String(Column, str):

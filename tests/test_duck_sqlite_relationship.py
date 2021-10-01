@@ -120,7 +120,8 @@ def test_create_sql():
         "first_name TEXT UNIQUE, " + \
         "city INTEGER, " + \
         "age BIGINT, " + \
-        " FOREIGN KEY (city) REFERENCES cities (id));"
+        " FOREIGN KEY (city) REFERENCES cities (id) " + \
+        "ON DELETE NO ACTION ON UPDATE CASCADE);"
 
 
 def get_table(table, tables):
