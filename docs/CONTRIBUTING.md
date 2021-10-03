@@ -8,8 +8,8 @@ You looked the application and thought of some feature that should be added to t
 
 **_So you have two steps to follow:_**
 
-- [Open an issue detailing your idea](#criando-uma-issue)
-- [You implement the functionality yourself](#contribuir-com-implementação)
+- [Open an issue detailing your idea](#creating-an-issue)
+- [You implement the functionality yourself](#contribute-to-implementation)
 
 ## Creating an issue
 
@@ -72,7 +72,7 @@ git push
 
 But that will only in your fork, the official repository will not have its changes now what ?
 
-Calm down, now that the `Pull Request` or `PR`
+Calm down, now that the `Pull Request` or `PR` to branch `develop`.
 
 ## Contribute to implementation:
 
@@ -104,7 +104,7 @@ The project code can be found in the folder `duck_orm`, we are accepting library
 
 - In the file `./model.py`: Principal arquivo, é aqui onde toda a mágica acontece. Todos os métodos que podem ser usados por um modelo estão nesse aquivo.
 
-### Como executar a aplicação:
+### How to run the application:
 
 We use [poetry](https://python-poetry.org/docs/) for easier dependency management.
 So you need to install it:
