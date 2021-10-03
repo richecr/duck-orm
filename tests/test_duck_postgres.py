@@ -188,6 +188,21 @@ async def test_select_all_limit():
 
 
 @async_decorator
+async def test_find_by_id_success():
+    person = await Person.find_by_id(1)
+    assert person.first_name == 'Rich'
+    assert person.last_name == 'Rich Ramalho'
+    assert person.age == 21
+    assert person.salary == 10000000
+
+
+@async_decorator
+async def test_find_by_id_invalid():
+    person = await Person.find_by_id(4)
+    assert person is None
+
+
+@async_decorator
 async def test_delete_person():
     await Person.delete(
         conditions=[

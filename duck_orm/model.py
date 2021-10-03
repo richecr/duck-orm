@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple, Type, TypeVar
+from typing import Any, Dict, List, Tuple, Type, TypeVar
 from databases import Database
 import inspect
 
@@ -206,6 +206,22 @@ class Model:
             fields_all, fields_foreign_key = await cls.__parser_fields(data)
             entity = dialect.parser(data, fields_all, fields_foreign_key)
             result: cls = cls(**entity)
+        return result
+
+    @classmethod
+    async def find_by_id(
+        cls: Type[T],
+        id: Any,
+        fields_includes: List[str] = [],
+        fields_excludes: List[str] = []
+    ) -> Type[T]:
+        name = cls.get_id()[0]
+        condition = Condition(name, "=", id)
+        result = await cls.find_one(
+            fields_includes=fields_includes,
+            fields_excludes=fields_excludes,
+            conditions=[condition]
+        )
         return result
 
     @ classmethod
