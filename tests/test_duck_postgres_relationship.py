@@ -125,8 +125,9 @@ def test_create_sql():
         "id_teste SERIAL PRIMARY KEY, " + \
         "first_name TEXT UNIQUE, " + \
         "city INTEGER, " + \
-        "age BIGINT, " + \
-        " FOREIGN KEY (city) REFERENCES cities (id));"
+        "age BIGINT,  " + \
+        "FOREIGN KEY (city) REFERENCES cities (id) " + \
+        "ON DELETE NO ACTION ON UPDATE CASCADE);"
 
 
 def get_table(table, tables):

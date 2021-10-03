@@ -16,6 +16,7 @@ repo_url: https://github.com/richecr/duck-orm
 nav:
   - Introduction: "index.md"
   - Getting Started: "getting_started.md"
+  - Contributing: "CONTRIBUTING.md"
   - Models:
     - Definition: "models/index.md"
     - Methods: "models/methods.md"

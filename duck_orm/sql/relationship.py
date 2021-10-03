@@ -2,7 +2,7 @@ import inspect
 from typing import Any, Dict, Type
 
 from duck_orm.model import Model
-from duck_orm.sql.fields import Column
+from duck_orm.sql.fields import Column, ActionsEnum
 from duck_orm.sql.condition import Condition
 from duck_orm.utils.functions import get_dialect
 
@@ -11,17 +11,27 @@ class ForeignKey(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, model: Type[Model], name_in_table_fk: str,
-                 unique: bool = False):
+    def __init__(
+            self,
+            model: Type[Model],
+            name_in_table_fk: str,
+            unique: bool = False,
+            on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
+            on_update: ActionsEnum = ActionsEnum.CASCADE.value
+    ) -> None:
+        self.validate_action(on_delete, on_update)
+
         self.model = model
         self.name_in_table_fk = name_in_table_fk
         self.unique = unique
+        self.on_delete = on_delete
+        self.on_update = on_update
         super().__init__('ForeignKey', unique=unique)
 
     def sql(self, dialect: str, name: str) -> str:
         generator_sql = get_dialect(dialect)
         sql = generator_sql.add_foreing_key_column(
-            name, self.model.get_name(), self.name_in_table_fk)
+            name, self.model.get_name(), self.name_in_table_fk, self.on_delete, self.on_update)
         return sql
 
 
@@ -88,18 +98,29 @@ class OneToOne(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, model: Type[Model], name_relation: str):
-        self.model = model
+    def __init__(
+            self,
+            model: Type[Model],
+            name_relation: str,
+            on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
+            on_update: ActionsEnum = ActionsEnum.CASCADE.value
+    ) -> None:
+        self.validate_action(on_delete, on_update)
         if not name_relation:
             raise Exception('Attribute name_relation is mandatory')
+
         self.name_relation = name_relation
+        self.model = model
+        self.on_delete = on_delete
+        self.on_update = on_update
+
         super().__init__('OneToOne', primary_key=True)
 
     def sql(self, dialect: str, field_name: str, name_table: str):
         generator_sql = get_dialect(dialect)
         name_relationship = self.model.get_id()[0]
         sql = generator_sql.add_foreing_key_column(
-            field_name, name_table, name_relationship)
+            field_name, name_table, name_relationship, self.on_delete, self.on_update)
         return sql
 
 
