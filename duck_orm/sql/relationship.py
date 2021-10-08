@@ -16,6 +16,7 @@ class ForeignKey(Column):
             model: Type[Model],
             name_in_table_fk: str,
             unique: bool = False,
+            name_constraint: str = "",
             on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
             on_update: ActionsEnum = ActionsEnum.CASCADE.value
     ) -> None:
@@ -26,12 +27,18 @@ class ForeignKey(Column):
         self.unique = unique
         self.on_delete = on_delete
         self.on_update = on_update
+        self.name_constraint = name_constraint
         super().__init__('ForeignKey', unique=unique)
 
     def sql(self, dialect: str, name: str) -> str:
         generator_sql = get_dialect(dialect)
         sql = generator_sql.add_foreing_key_column(
-            name, self.model.get_name(), self.name_in_table_fk, self.on_delete, self.on_update)
+            name,
+            self.model.get_name(),
+            self.name_in_table_fk,
+            self.on_delete,
+            self.on_update,
+            self.name_constraint)
         return sql
 
 
