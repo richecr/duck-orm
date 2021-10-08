@@ -5,7 +5,13 @@ import pytest
 
 from duck_orm.model import Model
 from duck_orm.sql import fields as Field
-from duck_orm.sql.relationship import ForeignKey, ManyToMany, ManyToOne, OneToOne, OneToMany
+from duck_orm.sql.relationship import (
+    ForeignKey,
+    ManyToMany,
+    ManyToOne,
+    OneToOne,
+    OneToMany
+)
 
 db = Database('sqlite:///example.db')
 

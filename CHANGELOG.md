@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added the `on_update` parameters to the `ForeignKey` field.
 - Added doc of parameter `on_update` to the `ForeignKey` field.
 - Implement Method `find_by_id`.
+- Add parameter `name_constraint` in `ForeignKey` field.
+- Added doc of parameter `name_constraint` to the `ForeignKey` field.
 
 ### Corretion
 - Documentation fix: portuguese words and some broken links.

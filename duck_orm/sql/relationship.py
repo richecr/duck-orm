@@ -127,7 +127,12 @@ class OneToOne(Column):
         generator_sql = get_dialect(dialect)
         name_relationship = self.model.get_id()[0]
         sql = generator_sql.add_foreing_key_column(
-            field_name, name_table, name_relationship, self.on_delete, self.on_update)
+            field_name,
+            name_table,
+            name_relationship,
+            self.on_delete,
+            self.on_update
+        )
         return sql
 
 
