@@ -31,7 +31,9 @@ git clone https://github.com/<nome_de_usuario>/duck-orm
 
 When finished, you will have the repository on your computer and then just open in your preferred editor and make your changes.
 
-Before you should create your branch for your development:
+Before you should create your branch for your development.
+
+You must create your branch from the `develop` branch:
 
 ```sh
 git checkout -b <nome_branch>
@@ -79,8 +81,6 @@ Calm down, now that the `Pull Request` or `PR` to branch `develop`.
 After having forked and clone the project, chosen your favorite text editor. Now it's time to code.
 
 But calm there, first of all, you should **choose an issue** you want to work with. If the issue is about functionality does not exist, you should create and say you're working on it, case it exists, you must say that you intend to work on the issue. And after done that, now yes are you ready to **code**.
-
-Mas calma ai, antes de qualquer coisa, você deve **escolher uma issue** que pretender trabalhar. Se a issue que trata sobre a funcionalidade não existir, você deve criar e dizer que esta trabalhando nela, caso ela exista você deve dizer lá(caso não já tenha alguém) que pretende trabalhar na issue. E após feito isso, agora sim você está pronto para **codar**.
 
 ### Understanding folders:
 
@@ -156,6 +156,8 @@ pycodestyle .
 On your fork page a yellow message will appear asking you to make a Pull Request to the original repository. Clicking will open a page for you to fill in your PR information.
 
 - Reference the issue you are working on using `#<numero_da_issue>`.
+
+- Open your PR for the `develop` branch.
 
 - Describe your modifications.
 

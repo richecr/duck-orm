@@ -9,8 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - Added the `on_delete` parameters to the `ForeignKey` field.
+- Added doc of parameter `on_delete` to the `ForeignKey` field.
 - Added the `on_update` parameters to the `ForeignKey` field.
+- Added doc of parameter `on_update` to the `ForeignKey` field.
 - Implement Method `find_by_id`.
+
+### Corretion
+- Documentation fix: portuguese words and some broken links.
 
 ## [0.1.0] - 2021-08-06
 
