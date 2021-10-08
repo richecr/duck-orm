@@ -10,6 +10,7 @@ ForeignKey(
     model: Model,
     name_in_table_fk: str,
     unique: bool = False,
+    name_constraint: str = "",
     on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
     on_update: ActionsEnum = ActionsEnum.CASCADE.value
 ):
@@ -20,10 +21,13 @@ ForeignKey(
     - `name_in_table_fk`: The name of the attribute that will be `FK` in 
     the other model.
     - `unique`: Whether this field is going to be a single value or not.
+    - `name_constraint`: Name for the `Foreign Key` constraint. If not passed, 
+    the default logic of the used database will be used.
     - `on_delete`: Action ON DELETE: `CASCADE`, `NO ACTION`, `RESTRICT`, 
     `SET DEFAULT` and `SET NULL`.
     - `on_update`: Action ON UPDATE: `CASCADE`, `NO ACTION`, `RESTRICT`, 
     `SET DEFAULT` and `SET NULL`.
+
 
 ## Examples
 

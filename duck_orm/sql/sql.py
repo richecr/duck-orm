@@ -21,6 +21,9 @@ ALTER_TABLE_ADD_CONSTRAINT_SQL = "ALTER TABLE {name_table} " + \
 ALTER_TABLE_ADD_COLUMN_SQL = "ALTER TABLE {name_table} ADD {name} {type_sql};"
 ADD_FOREING_KEY_COLUMN_SQL = "FOREIGN KEY ({name}) REFERENCES {name_table} " +\
     "({name_in_table_fk}) ON DELETE {on_delete} ON UPDATE {on_update}"
+CONSTRAINT_ADD_FOREING_KEY_COLUMN_SQL = "CONSTRAINT {name_constraint} " +\
+    "FOREIGN KEY ({name}) REFERENCES {name_table} " +\
+    "({name_in_table_fk}) ON DELETE {on_delete} ON UPDATE {on_update}"
 ALTER_TABLE_ADD_COLUMN_WITH_CONSTRAINT_SQL = "ALTER TABLE {name_table} " + \
     "ADD COLUMN {field_name} {fields_type} " + \
     "REFERENCES {table_relation} ({field});"
@@ -136,15 +139,21 @@ class QueryExecutor:
         name_table: str,
         name_in_table_fk: str,
         on_delete: str,
-        on_update: str
+        on_update: str,
+        name_constraint: str
     ) -> str:
-        return ADD_FOREING_KEY_COLUMN_SQL.format(
-            name=name,
-            name_table=name_table,
-            name_in_table_fk=name_in_table_fk,
-            on_delete=on_delete,
-            on_update=on_update
-        )
+        args = {
+            "name": name,
+            "name_table": name_table,
+            "name_in_table_fk": name_in_table_fk,
+            "on_delete": on_delete,
+            "on_update": on_update
+        }
+        if name_constraint != "":
+            return CONSTRAINT_ADD_FOREING_KEY_COLUMN_SQL.format(
+                **args, name_constraint=name_constraint)
+
+        return ADD_FOREING_KEY_COLUMN_SQL.format(**args)
 
     @classmethod
     def alter_table_add_column(
