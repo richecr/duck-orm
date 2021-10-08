@@ -140,7 +140,7 @@ class QueryExecutor:
         name_in_table_fk: str,
         on_delete: str,
         on_update: str,
-        name_constraint: str
+        name_constraint: str = ""
     ) -> str:
         args = {
             "name": name,

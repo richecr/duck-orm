@@ -79,9 +79,16 @@ class UsersWorkingDay(Model):
     __db__ = db
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
-    users: User = ForeignKey(model=User, name_in_table_fk='id')
+    users: User = ForeignKey(
+        model=User,
+        name_in_table_fk='id',
+        name_constraint="users_working_days"
+    )
     working_days: WorkingDay = ForeignKey(
-        model=WorkingDay, name_in_table_fk='id')
+        model=WorkingDay,
+        name_in_table_fk='id',
+        name_constraint="working_days_users"
+    )
 
 
 def async_decorator(func):
@@ -122,6 +129,17 @@ def test_create_sql():
         "age BIGINT, " + \
         " FOREIGN KEY (city) REFERENCES cities (id) " + \
         "ON DELETE NO ACTION ON UPDATE CASCADE);"
+
+
+def test_name_constraint_fk():
+    sql = UsersWorkingDay._Model__get_create_sql()
+    assert sql == "CREATE TABLE IF NOT EXISTS users_working_days (" + \
+        "working_days INTEGER, users INTEGER, " + \
+        "id INTEGER PRIMARY KEY AUTOINCREMENT, " + \
+        " CONSTRAINT users_working_days FOREIGN KEY (users) " + \
+        "REFERENCES users (id) ON DELETE NO ACTION ON UPDATE CASCADE, " + \
+        " CONSTRAINT working_days_users FOREIGN KEY (working_days) " + \
+        "REFERENCES working_days (id) ON DELETE NO ACTION ON UPDATE CASCADE);"
 
 
 def get_table(table, tables):
