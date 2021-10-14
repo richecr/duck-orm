@@ -19,7 +19,7 @@ On the [project](https://github.com/richecr/duck-orm) page, you can click on the
 - Give your issue a good name.
 - Detail very well about the purpose of the issue.
 - Images if possible.
-- Finaly, click on `Submit new issue`.
+- Finally, click on `Submit new issue`.
 
 ## Clone the repository
 
