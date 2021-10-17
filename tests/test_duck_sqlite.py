@@ -274,6 +274,4 @@ async def test_update_sql_without_id():
 
 @async_decorator
 async def test_drop_table():
-    await Son.drop_table()
-    await Person.drop_table()
-    await MyTest.drop_table()
+    await model_manager.drop_all_tables()
