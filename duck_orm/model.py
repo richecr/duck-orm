@@ -10,13 +10,22 @@ from duck_orm.sql.condition import Condition
 T = TypeVar('T', bound='Model')
 
 
-class Model:
+class ModelMeta(type):
+    def __new__(cls, name, bases, attrs):
+        model_class = super().__new__(cls, name, bases, attrs)
+
+        if ("model_manager" in attrs):
+            attrs['model_manager'].add_model(name, model_class)
+
+        return model_class
+
+
+class Model(metaclass=ModelMeta):
     __tablename__: str = ''
     __db__: Database
 
     def __init__(self, **kwargs):
         self._instance = {}
-        self.relationships()
 
         for key, value in kwargs.items():
             self._instance[key] = value
@@ -36,22 +45,37 @@ class Model:
     def __getitem__(self, key):
         return getattr(self, key)
 
-    def relationships(self):
+    @classmethod
+    def relationships(cls):
         pass
 
     @classmethod
     async def associations(cls):
         cls.relationships()
         sqls: list[str] = []
-        for _, field in inspect.getmembers(cls):
+        dialect = cls.__db__.url.dialect
+
+        for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
-                from duck_orm.sql.relationship import OneToMany
-                if isinstance(field, OneToMany):
-                    dialect = cls.__db__.url.dialect
-                    field_name, field_id = cls.get_id()
-                    sql = field.sql(dialect, cls.get_name(), field_name,
-                                    field_id.type_sql(dialect))
-                    sqls = sqls + sql
+                from duck_orm.sql.relationship import ForeignKey, OneToOne
+                sql = ''
+                if isinstance(field, ForeignKey):
+                    field_id = field.model.get_id()[1]
+                    sql_field_fk = field_id.type_sql(dialect)
+                    sql = field.sql(
+                        dialect=dialect, name=name, table_name=cls.get_name(),
+                        type_sql=sql_field_fk)
+                elif isinstance(field, OneToOne):
+                    if dialect == 'sqlite':
+                        await cls.drop_table()
+                        await cls.create()
+                    elif dialect == 'postgresql':
+                        field_id = field.model.get_id()[1]
+                        type_sql = field_id.column_sql(dialect)
+                        sql = field.sql(
+                            dialect=dialect, field_name=name,
+                            type_sql=type_sql, table_name=cls.get_name())
+                sqls.append(sql)
 
         for sql in sqls:
             await cls.__db__.execute(sql)
@@ -67,10 +91,10 @@ class Model:
     def __get_create_sql(cls):
         fields: List[Tuple[str, str]] = []
         sql_unique_fields = []
+        dialect = cls.__db__.url.dialect
 
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
-                dialect = cls.__db__.url.dialect
                 from duck_orm.sql.relationship import (
                     OneToMany, ManyToOne, OneToOne, ForeignKey)
 
@@ -78,7 +102,7 @@ class Model:
                     if field.unique:
                         sql_unique_fields.append(name)
 
-                    field_name, field_id = field.model.get_id()
+                    field_id = field.model.get_id()[1]
                     fields.insert(0, (name, field_id.type_sql(dialect)))
                     fields.append(('', field.sql(dialect, name)))
                 elif (isinstance(field, ManyToOne)):
@@ -87,10 +111,11 @@ class Model:
                 elif (isinstance(field, OneToMany)):
                     continue
                 elif (isinstance(field, OneToOne)):
-                    field_name, field_id = field.model.get_id()
+                    field_id = field.model.get_id()[1]
                     table_name = field.model.get_name()
                     fields.append((name, field_id.column_sql(dialect)))
-                    fields.append(('', field.sql(dialect, name, table_name)))
+                    fields.append(
+                        ('', field.create_sql(dialect, name, table_name)))
                 else:
                     fields.insert(0, (name, field.column_sql(dialect)))
 
@@ -321,13 +346,15 @@ class Model:
         return await self.find_one(conditions=[condition_with_id])
 
     @ classmethod
-    def __drop_table(cls, name_table: str, dialect: str):
+    def __drop_table(
+            cls, dialect: str, name_table: str, cascade: bool = False):
         query_executor = get_dialect(dialect)
-        return query_executor.drop_table(name_table)
+        return query_executor.drop_table(name_table, cascade)
 
     @ classmethod
-    async def drop_table(cls):
-        sql = cls.__drop_table(cls.get_name(), str(cls.__db__.url.dialect))
+    async def drop_table(cls, cascade: bool = False):
+        sql = cls.__drop_table(
+            str(cls.__db__.url.dialect), cls.get_name(), cascade)
         await cls.__db__.execute(sql)
 
     @ classmethod

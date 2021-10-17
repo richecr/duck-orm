@@ -4,6 +4,7 @@ import asyncio
 import pytest
 
 from duck_orm.model import Model
+from duck_orm.model_manager import ModelManager
 from duck_orm.sql import fields as Field
 from duck_orm.sql.condition import Condition
 from duck_orm.exceptions import UpdateException
@@ -11,9 +12,12 @@ from duck_orm.sql.relationship import ForeignKey
 
 db = Database('sqlite:///example.db')
 
+model_manager = ModelManager()
+
 
 class MyTest(Model):
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
     msg: str = Field.String(not_null=True)
@@ -22,6 +26,7 @@ class MyTest(Model):
 class Person(Model):
     __tablename__ = 'persons'
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
@@ -33,14 +38,19 @@ class Person(Model):
 class Son(Model):
     __tablename__ = 'sons'
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
     age: int = Field.Integer()
-    person_id: int = ForeignKey(
-        model=Person, name_in_table_fk="id",
-        on_delete="NO ACTION", on_update="CASCADE")
+
+    @classmethod
+    def relationships(cls):
+        cls.person_id: int = ForeignKey(
+            model=Person, name_in_table_fk="id",
+            on_delete="CASCADE", on_update="CASCADE",
+            name_constraint="son_person")
 
 
 def async_decorator(func):
@@ -78,13 +88,10 @@ def test_create_sql():
 def test_create_sql_son():
     sql = Son._Model__get_create_sql()
     assert sql == "CREATE TABLE IF NOT EXISTS sons (" + \
-        "person_id INTEGER, " + \
         "last_name TEXT NOT NULL, " + \
         "id INTEGER PRIMARY KEY AUTOINCREMENT, " + \
         "first_name TEXT UNIQUE, " + \
-        "age INTEGER,  " + \
-        "FOREIGN KEY (person_id) REFERENCES persons (id) " + \
-        "ON DELETE NO ACTION ON UPDATE CASCADE);"
+        "age INTEGER);"
 
 
 def get_table(table, tables):
@@ -97,9 +104,7 @@ def get_table(table, tables):
 @async_decorator
 async def test_create_table():
     await db.connect()
-    await Person.create()
-    await Son.create()
-    await MyTest.create()
+    await model_manager.create_all_tables()
     tables = await Person.find_all_tables()
     assert get_table('persons', tables)
     assert get_table('mytest', tables)
@@ -155,7 +160,7 @@ async def test_sql_select_where_persons():
     assert fields.__contains__('first_name')
     assert fields.__contains__('last_name')
     assert fields.__contains__('salary')
-    msg = "SELECT {fields} FROM persons WHERE first_name = 'Rich';".format(
+    msg = "SELECT {fields} FROM persons WHERE first_name = 'Rich'".format(
         fields=fields)
     assert sql[0] == msg
 

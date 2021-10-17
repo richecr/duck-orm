@@ -12,5 +12,13 @@ class ModelManager:
     def remove_model(self, name: str):
         del self.models[name]
 
-    async def create_tables(self):
-        pass
+    async def create_all_tables(self):
+        for _, model in self.models.items():
+            await model.create()
+
+        for _, model in self.models.items():
+            await model.associations()
+
+    async def drop_all_tables(self):
+        for _, model in self.models.items():
+            await model.drop_table(cascade=True)
