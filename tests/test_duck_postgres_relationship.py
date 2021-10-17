@@ -33,8 +33,7 @@ class City(Model):
     def relationships(cls):
         cls.persons = OneToMany(
             model=Person,
-            name_in_table_fk='city',
-            name_relation='person_city')
+            name_in_table_fk='city')
 
 
 class Person(Model):
@@ -109,14 +108,12 @@ class UsersWorkingDay(Model):
         cls.users: User = ForeignKey(
             model=User,
             name_in_table_fk='id',
-            name_constraint="users_working_days"
-        )
+            name_constraint="users_working_days")
 
         cls.working_days: WorkingDay = ForeignKey(
             model=WorkingDay,
             name_in_table_fk='id',
-            name_constraint="working_days_users"
-        )
+            name_constraint="working_days_users")
 
 
 def async_decorator(func):

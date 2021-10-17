@@ -39,6 +39,7 @@ class Person(Model):
     last_name: str = Field.String(not_null=True)
     age: int = Field.Integer()
     salary: int = Field.BigInteger()
+    alive: bool = Field.Boolean()
 
 
 class Son(Model):
@@ -47,6 +48,8 @@ class Son(Model):
     model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
+    description: str = Field.Varchar(
+        length=15, default_value="Has no description")
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
     age: int = Field.Integer()
@@ -55,8 +58,7 @@ class Son(Model):
     def relationships(cls):
         cls.person_id: int = ForeignKey(
             model=Person, name_in_table_fk="id",
-            on_delete="CASCADE", on_update="CASCADE",
-            name_constraint="son_person")
+            on_delete="CASCADE", on_update="CASCADE")
 
 
 def async_decorator(func):
@@ -88,6 +90,7 @@ def test_create_sql():
         "last_name TEXT NOT NULL, " + \
         "id SERIAL PRIMARY KEY, " + \
         "first_name TEXT UNIQUE, " + \
+        "alive BOOLEAN, " + \
         "age INTEGER);"
 
 
@@ -97,6 +100,7 @@ def test_create_sql_son():
         "last_name TEXT NOT NULL, " + \
         "id SERIAL PRIMARY KEY, " + \
         "first_name TEXT UNIQUE, " + \
+        "description VARCHAR(15) DEFAULT 'Has no description', " + \
         "age INTEGER);"
 
 

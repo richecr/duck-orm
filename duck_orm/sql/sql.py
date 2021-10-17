@@ -20,11 +20,15 @@ ADD_COLUMN_SQL = "ALTER TABLE {table_name} " + \
 ADD_FK_SQL = "REFERENCES {table_relation} ({field}) " + \
     "ON DELETE {on_delete} ON UPDATE {on_update}"
 
+ADD_FK_COLUMN_SQL = "FOREIGN KEY ({name}) " + ADD_FK_SQL
+
+ADD_FK_WITH_CONSTRAINT_WITHOUT_ALTER_SQL = "CONSTRAINT {name_constraint} " + \
+    ADD_FK_COLUMN_SQL
+
 ADD_FK_WITH_CONSTRAINT_SQL = "CONSTRAINT {name_constraint} " + ADD_FK_SQL
 
 ADD_COLUMN_FK_WITH_CONSTRAINT_SQL = ADD_COLUMN_SQL + ADD_FK_WITH_CONSTRAINT_SQL
 ADD_COLUMN_FK_SQL = ADD_COLUMN_SQL + ADD_FK_SQL
-ADD_FK_COLUMN_SQL = "FOREIGN KEY ({name}) " + ADD_FK_SQL
 
 
 class QueryExecutor:
@@ -134,7 +138,7 @@ class QueryExecutor:
             "on_update": on_update
         }
         if name_constraint != "":
-            return ADD_FK_WITH_CONSTRAINT_SQL.format(
+            return ADD_FK_WITH_CONSTRAINT_WITHOUT_ALTER_SQL.format(
                 **args, name_constraint=name_constraint)
 
         return ADD_FK_COLUMN_SQL.format(**args)

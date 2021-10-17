@@ -3,7 +3,7 @@ from databases import Database
 import inspect
 
 from duck_orm.utils.functions import get_dialect
-from duck_orm.exceptions import UpdateException
+from duck_orm.exceptions import IdInvalidException, UpdateException
 from duck_orm.sql import fields as fields_type
 from duck_orm.sql.condition import Condition
 
@@ -95,22 +95,8 @@ class Model(metaclass=ModelMeta):
 
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
-                from duck_orm.sql.relationship import (
-                    OneToMany, ManyToOne, OneToOne, ForeignKey)
-
-                if (isinstance(field, ForeignKey)):
-                    if field.unique:
-                        sql_unique_fields.append(name)
-
-                    field_id = field.model.get_id()[1]
-                    fields.insert(0, (name, field_id.type_sql(dialect)))
-                    fields.append(('', field.sql(dialect, name)))
-                elif (isinstance(field, ManyToOne)):
-                    field_id = field.model.get_id()[1]
-                    fields.append((name, field_id.type_sql(dialect)))
-                elif (isinstance(field, OneToMany)):
-                    continue
-                elif (isinstance(field, OneToOne)):
+                from duck_orm.sql.relationship import OneToOne
+                if (isinstance(field, OneToOne)):
                     field_id = field.model.get_id()[1]
                     table_name = field.model.get_name()
                     fields.append((name, field_id.column_sql(dialect)))
@@ -150,7 +136,7 @@ class Model(metaclass=ModelMeta):
                 if (field.primary_key):
                     return name, field
 
-        raise Exception('Model has no primary key!')
+        raise IdInvalidException('Model has no primary key!')
 
     @ classmethod
     def __get_select_sql(

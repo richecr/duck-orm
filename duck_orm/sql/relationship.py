@@ -58,16 +58,11 @@ class OneToMany(Column):
     def __init__(
             self,
             model: Type[Model],
-            name_in_table_fk: str,
-            name_relation: str
+            name_in_table_fk: str
     ) -> None:
-        if not name_relation:
-            raise Exception('Attribute name_relation is mandatory')
-
         self.model = model
         self.name_in_table_fk = name_in_table_fk
         self.model_: Type[Model] = None
-        self.name_relation = name_relation
         super().__init__('OneToMany')
 
     async def add(self, model: Type[Model]):
@@ -105,9 +100,6 @@ class OneToOne(Column):
             on_update: ActionsEnum = ActionsEnum.CASCADE.value
     ) -> None:
         self.validate_action(on_delete, on_update)
-        if not name_constraint:
-            raise Exception('Attribute name_relation is mandatory')
-
         self.model = model
         self.name_constraint = name_constraint
         self.on_delete = on_delete
@@ -119,7 +111,8 @@ class OneToOne(Column):
         field = self.model.get_id()[0]
         sql = generator_sql.add_foreing_key_column(
             field=field, name=field_name, table_name=name_table,
-            on_delete=self.on_delete, on_update=self.on_update)
+            on_delete=self.on_delete, on_update=self.on_update,
+            name_constraint=self.name_constraint)
         return sql
 
     def sql(
