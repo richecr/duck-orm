@@ -13,39 +13,52 @@ Let's look at some examples of using these fields.
 
 - Set the [ForeignKey](./foreignkey.md) field to use a One-to-Many relationship.
 
-``` python hl_lines="25"
+``` python hl_lines="28-33"
 class City(Model):
     __tablename__ = 'cities'
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
     name: str = Field.String(unique=True)
 
-    def relationships(self):
-        self.persons = OneToMany(
+    @classmethod
+    def relationships(cls):
+        cls.persons = OneToMany(
             model=Person,
             name_in_table_fk='city',
             name_relation='person_city'
         )
 
-
 class Person(Model):
     __tablename__ = 'persons'
     __db__ = db
+    model_manager = model_manager
 
     id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
     age: int = Field.BigInteger()
     salary: int = Field.BigInteger()
-    city: City = ForeignKey(model=City, name_in_table_fk='id')
 
-await City.create()
-await Person.create()
+    @classmethod
+    def relationships(cls):
+        cls.city: City = ForeignKey(
+            model=City,
+            name_in_table_fk='id',
+            name_constraint='person_city_fk')
+
+await model_manager.create_all_tables()
 ```
 
 And with that, it will create the two tables and the `persons` table will have 
 a field referencing the `id` field of the `cities` table.
+
+Every field that refers to a relationship must be placed inside the method.
+`relationships`, as this method is only executed after all tables are created.
+
+As is done in the last line, it creates all the tables and then starts doing
+the relationships.
 
 !!! note
     You may have also noticed the method `relationships` in the `City` class, 
@@ -64,6 +77,7 @@ a field referencing the `id` field of the `cities` table.
 class User(Model):
     __tablename__ = 'users'
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
     name: str = Field.String()
@@ -71,12 +85,12 @@ class User(Model):
     @classmethod
     def relationships(cls):
         cls.working_day = ManyToMany(model=WorkingDay,
-                                     model_relation=UsersWorkingDay)
-
+                                        model_relation=UsersWorkingDay)
 
 class WorkingDay(Model):
     __tablename__ = 'working_days'
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
     week_day: str = Field.String()
@@ -86,18 +100,25 @@ class WorkingDay(Model):
     def relationships(cls):
         cls.users = ManyToMany(model=User, model_relation=UsersWorkingDay)
 
-
 class UsersWorkingDay(Model):
-    __tablename__ = 'users_working_days'
+    __tablename__ = 'users_working_day'
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
-    users: User = ForeignKey(model=User, name_in_table_fk='id')
-    working_days: WorkingDay = ForeignKey(model=WorkingDay, name_in_table_fk='id')
 
-await User.create()
-await WorkingDay.create()
-await UsersWorkingDay.create()
+    @classmethod
+    def relationships(cls):
+        cls.users: User = ForeignKey(
+            model=User,
+            name_in_table_fk='id',
+            name_constraint='user_working_day')
+        cls.working_days: WorkingDay = ForeignKey(
+            model=WorkingDay,
+            name_in_table_fk='id',
+            name_constraint='working_day_user')
+
+await model_manager.create_all_tables()
 ```
 
 First we create the `User` and `WorkingDay` tables, they have a Many to Many
@@ -119,10 +140,11 @@ creating the relationship.
 
 - To represent the [One to One](./one_to_one.md) relationship, just make use of the `OneToOne` field.
 
-``` python  hl_lines="16-20"
+``` python  hl_lines="19-22"
 class Person(Model):
     __tablename__ = 'persons'
     __db__ = db
+    model_manager = model_manager
 
     id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
@@ -130,20 +152,17 @@ class Person(Model):
     age: int = Field.BigInteger()
     salary: int = Field.BigInteger()
 
-
 class Contact(Model):
     __tablename__ = 'contacts'
     __db__ = db
+    model_manager = model_manager
 
-    id_person: Person = OneToOne(
-        model=Person,
-        name_relation='person_contact',
-        field='id_person'
-    )
     phone: str = Field.String(not_null=True)
 
-await Person.create()
-await Contact.create()
+    @classmethod
+    def relationships(cls):
+        cls.id_person = OneToOne(
+            model=Person, name_constraint='person_contact')
 ```
 
 We create the `Person` table and the `Contact` table. We use the `OneToOne` field.

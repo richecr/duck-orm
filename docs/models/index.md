@@ -6,21 +6,24 @@ With `DuckORM` it's easy to create your database models and get started right aw
 from databases import Database
 
 from duck_orm.model import Model
+from duck_orm.model_manager import ModelManager
 from duck_orm.sql import fields as Field
 
+model_manager = ModelManager()
 db = Database('sqlite:///example.db')
 await db.connect()
 
 
 class Person(Model):
-    __tablename__ = 'persons'
-    __db__ = db
+        __tablename__ = 'persons'
+        __db__ = db
+        model_manager = model_manager
 
-    id: int = Field.Integer(primary_key=True, auto_increment=True)
-    first_name: str = Field.String(unique=True)
-    last_name: str = Field.String(not_null=True)
-    age: int = Field.BigInteger(min_value=18)
-    salary: int = Field.BigInteger()
+        id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
+        first_name: str = Field.String(unique=True)
+        last_name: str = Field.String(not_null=True)
+        age: int = Field.BigInteger()
+        salary: int = Field.BigInteger()
 ```
 
 So far you've only defined a template, but you haven't told DuckORM to create
@@ -45,11 +48,12 @@ And only one `primary_key` column is allowed.
 class Person(Model):
     __tablename__ = 'persons'
     __db__ = db
+    model_manager = model_manager
 
-    id: int = Field.Integer(primary_key=True, auto_increment=True)
+    id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
-    age: int = Field.BigInteger(min_value=18)
+    age: int = Field.BigInteger()
     salary: int = Field.BigInteger()
 ```
 
@@ -81,11 +85,12 @@ await db.connect()
 class Person(Model):
     __tablename__ = 'persons'
     __db__ = db
+    model_manager = model_manager
 
-    id: int = Field.Integer(primary_key=True, auto_increment=True)
+    id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
-    age: int = Field.BigInteger(min_value=18)
+    age: int = Field.BigInteger()
     salary: int = Field.BigInteger()
 ```
 
@@ -103,11 +108,12 @@ Another important parameter is `__tablename__`, which is used to set the name
 class Person(Model):
     __tablename__ = 'persons'
     __db__ = db
+    model_manager = model_manager
 
-    id: int = Field.Integer(primary_key=True, auto_increment=True)
+    id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
-    age: int = Field.BigInteger(min_value=18)
+    age: int = Field.BigInteger()
     salary: int = Field.BigInteger()
 ```
 
@@ -117,3 +123,21 @@ class Person(Model):
     
     **Example:** In the case above, if the `__tablename__` attribute was not passed, the name
     of the table would be `person`.
+
+### Model Manager:
+
+It is the database model manager. It is he who has the methods to create all the
+tables and their relationships.
+
+``` python hl_lines="4"
+class Person(Model):
+    __tablename__ = 'persons'
+    __db__ = db
+    model_manager = model_manager
+
+    id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
+    first_name: str = Field.String(unique=True)
+    last_name: str = Field.String(not_null=True)
+    age: int = Field.BigInteger()
+    salary: int = Field.BigInteger()
+```

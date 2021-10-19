@@ -21,7 +21,6 @@ class ForeignKey(Column):
             on_update: ActionsEnum = ActionsEnum.CASCADE.value
     ) -> None:
         self.validate_action(on_delete, on_update)
-
         self.model = model
         self.name_in_table_fk = name_in_table_fk
         self.unique = unique
@@ -30,15 +29,25 @@ class ForeignKey(Column):
         self.name_constraint = name_constraint
         super().__init__('ForeignKey', unique=unique)
 
-    def sql(self, dialect: str, name: str) -> str:
+    def sql(
+        self,
+        dialect: str,
+        name: str,
+        table_name: str,
+        type_sql: str
+    ) -> str:
         generator_sql = get_dialect(dialect)
-        sql = generator_sql.add_foreing_key_column(
-            name,
-            self.model.get_name(),
-            self.name_in_table_fk,
-            self.on_delete,
-            self.on_update,
-            self.name_constraint)
+        args = {
+            "field_name": name,
+            "field_type": type_sql,
+            "table_name": table_name,
+            "on_delete": self.on_delete,
+            "on_update": self.on_update,
+            "field": self.name_in_table_fk,
+            "table_relation": self.model.get_name(),
+            "name_constraint": self.name_constraint,
+        }
+        sql = generator_sql.alter_table_add_column_with_constraint(**args)
         return sql
 
 
@@ -49,15 +58,11 @@ class OneToMany(Column):
     def __init__(
             self,
             model: Type[Model],
-            name_in_table_fk: str,
-            name_relation: str
+            name_in_table_fk: str
     ) -> None:
         self.model = model
         self.name_in_table_fk = name_in_table_fk
         self.model_: Type[Model] = None
-        if not name_relation:
-            raise Exception('Attribute name_relation is mandatory')
-        self.name_relation = name_relation
         super().__init__('OneToMany')
 
     async def add(self, model: Type[Model]):
@@ -72,24 +77,6 @@ class OneToMany(Column):
                 self.model_[self.model_.get_id()[0]]
             )
         ])
-
-    def sql_column(self, dialect: str, name: str, type_sql: str):
-        generator_sql = get_dialect(dialect)
-        sql = generator_sql.alter_table_add_column(
-            self.model.get_name(), name, type_sql)
-        return sql
-
-    def sql(self, dialect: str, table_relation: str, field_name: str,
-            fields_type: str = ''):
-        generator_sql = get_dialect(dialect)
-        sqls: list[str] = []
-        name_table = self.model.get_name()
-        sql_ = generator_sql.alter_table_add_constraint(
-            name_table, self.name_relation, self.name_in_table_fk,
-            table_relation, field_name, fields_type)
-        sqls += sql_
-
-        return sqls
 
 
 class ManyToOne(Column):
@@ -108,31 +95,49 @@ class OneToOne(Column):
     def __init__(
             self,
             model: Type[Model],
-            name_relation: str,
+            name_constraint: str = "",
             on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
             on_update: ActionsEnum = ActionsEnum.CASCADE.value
     ) -> None:
         self.validate_action(on_delete, on_update)
-        if not name_relation:
-            raise Exception('Attribute name_relation is mandatory')
-
-        self.name_relation = name_relation
         self.model = model
+        self.name_constraint = name_constraint
         self.on_delete = on_delete
         self.on_update = on_update
-
         super().__init__('OneToOne', primary_key=True)
 
-    def sql(self, dialect: str, field_name: str, name_table: str):
+    def create_sql(self, dialect: str, field_name: str, name_table: str):
         generator_sql = get_dialect(dialect)
-        name_relationship = self.model.get_id()[0]
+        field = self.model.get_id()[0]
         sql = generator_sql.add_foreing_key_column(
-            field_name,
-            name_table,
-            name_relationship,
-            self.on_delete,
-            self.on_update
-        )
+            field=field, name=field_name, table_name=name_table,
+            on_delete=self.on_delete, on_update=self.on_update,
+            name_constraint=self.name_constraint)
+        return sql
+
+    def sql(
+        self,
+        dialect: str,
+        field_name: str,
+        type_sql: str,
+        table_name: str = ''
+    ) -> str:
+        generator_sql = get_dialect(dialect)
+        field = self.model.get_id()[0]
+        sql = ''
+        if table_name != '':
+            sql = generator_sql.alter_table_add_column_with_constraint(
+                table_name=table_name, field_name=field_name,
+                field_type=type_sql, field=field,
+                table_relation=self.model.get_name(),
+                name_constraint=self.name_constraint,
+                on_delete=self.on_delete, on_update=self.on_update)
+        else:
+            sql = generator_sql.add_foreing_key_column(
+                name=field_name, table_name=table_name, field=field,
+                on_delete=self.on_delete, on_update=self.on_update,
+                name_constraint=self.name_constraint)
+
         return sql
 
 

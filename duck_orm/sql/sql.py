@@ -1,32 +1,34 @@
 from typing import List, Mapping
 
 SELECT_TABLES_SQL = "SELECT name FROM sqlite_master where type = 'table';"
-SELECT_TABLE_SQL = "SELECT {fields} FROM {table} WHERE {conditions};"
-SELECT_LIMIT_TABLE_SQL = "SELECT {fields} FROM {table} WHERE {conditions} " +\
-    "LIMIT {limit};"
-SELECT_ID_ORDER_BY_SQL = "SELECT {name_id} FROM {table} ORDER BY " +\
-    "{name_id} DESC LIMIT 1;"
+SELECT_TABLE_SQL = "SELECT {fields} FROM {table}"
+LIMIT_SQL = " LIMIT {limit}"
+ORDER_BY_SQL = " ORDER BY {name_id} DESC"
+SELECT_TABLE_WHERE_SQL = SELECT_TABLE_SQL + " WHERE {conditions}"
+SELECT_LAST_ID_ORDER_BY_SQL = "SELECT {name_id} FROM {table} " +\
+    ORDER_BY_SQL + " LIMIT 1;"
+
 INSERT_INTO_SQL = "INSERT INTO {table}({fields_name}) VALUES({placeholders});"
 CREATE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"
 UPDATE_SQL = "UPDATE {table} SET {fields_values} WHERE {conditions};"
 DELETE_SQL = "DELETE FROM {table} WHERE {conditions};"
-DROP_TABLE_SQL = "DROP TABLE {name};"
+DROP_TABLE_SQL = "DROP TABLE {name}"
 
-ALTER_TABLE_DROP_COLUMN = "ALTER TABLE {name_table} " + \
-    "DROP COLUMN {field_name};"
-ALTER_TABLE_ADD_CONSTRAINT_SQL = "ALTER TABLE {name_table} " + \
-    "ADD CONSTRAINT {relation} " + \
-    "FOREIGN KEY ({field_name}) " + \
-    "REFERENCES {table_relation} ({field});"
-ALTER_TABLE_ADD_COLUMN_SQL = "ALTER TABLE {name_table} ADD {name} {type_sql};"
-ADD_FOREING_KEY_COLUMN_SQL = "FOREIGN KEY ({name}) REFERENCES {name_table} " +\
-    "({name_in_table_fk}) ON DELETE {on_delete} ON UPDATE {on_update}"
-CONSTRAINT_ADD_FOREING_KEY_COLUMN_SQL = "CONSTRAINT {name_constraint} " +\
-    "FOREIGN KEY ({name}) REFERENCES {name_table} " +\
-    "({name_in_table_fk}) ON DELETE {on_delete} ON UPDATE {on_update}"
-ALTER_TABLE_ADD_COLUMN_WITH_CONSTRAINT_SQL = "ALTER TABLE {name_table} " + \
-    "ADD COLUMN {field_name} {fields_type} " + \
-    "REFERENCES {table_relation} ({field});"
+ADD_COLUMN_SQL = "ALTER TABLE {table_name} " + \
+    "ADD COLUMN {field_name} {field_type} "
+
+ADD_FK_SQL = "REFERENCES {table_relation} ({field}) " + \
+    "ON DELETE {on_delete} ON UPDATE {on_update}"
+
+ADD_FK_COLUMN_SQL = "FOREIGN KEY ({name}) " + ADD_FK_SQL
+
+ADD_FK_WITH_CONSTRAINT_WITHOUT_ALTER_SQL = "CONSTRAINT {name_constraint} " + \
+    ADD_FK_COLUMN_SQL
+
+ADD_FK_WITH_CONSTRAINT_SQL = "CONSTRAINT {name_constraint} " + ADD_FK_SQL
+
+ADD_COLUMN_FK_WITH_CONSTRAINT_SQL = ADD_COLUMN_SQL + ADD_FK_WITH_CONSTRAINT_SQL
+ADD_COLUMN_FK_SQL = ADD_COLUMN_SQL + ADD_FK_SQL
 
 
 class QueryExecutor:
@@ -39,7 +41,8 @@ class QueryExecutor:
             cls,
             name_table: str,
             fields_name: List[str],
-            placeholders: List[str]):
+            placeholders: List[str]
+    ):
         return INSERT_INTO_SQL.format(table=name_table,
                                       fields_name=", ".join(fields_name),
                                       placeholders=", ".join(placeholders))
@@ -49,7 +52,8 @@ class QueryExecutor:
             cls,
             name_table: str,
             fields_values: List[str],
-            conditions: List[str]):
+            conditions: List[str]
+    ):
         return UPDATE_SQL.format(table=name_table,
                                  fields_values=", ".join(fields_values),
                                  conditions=", ".join(conditions))
@@ -60,122 +64,88 @@ class QueryExecutor:
             name_table: str,
             fields: List[str],
             conditions: str,
-            limit: int = None):
+            limit: int = None
+    ) -> str:
+        sql = SELECT_TABLE_WHERE_SQL
         if (limit is not None):
-            return SELECT_LIMIT_TABLE_SQL.format(
-                limit=limit,
-                table=name_table,
-                fields=", ".join(fields),
-                conditions=conditions)
-        return SELECT_TABLE_SQL.format(
+            sql += LIMIT_SQL
+
+        return sql.format(
             table=name_table,
             fields=", ".join(fields),
-            conditions=conditions)
+            conditions=conditions,
+            limit=limit
+        )
 
     @classmethod
     def select_last_id(cls, name_id: str, table: str):
-        return SELECT_ID_ORDER_BY_SQL.format(name_id=name_id, table=table)
+        return SELECT_LAST_ID_ORDER_BY_SQL.format(name_id=name_id, table=table)
 
     @classmethod
     def delete_sql(cls, name_table: str, conditions: str):
         return DELETE_SQL.format(table=name_table, conditions=conditions)
 
     @classmethod
-    def drop_table(cls, name_table: str):
-        return DROP_TABLE_SQL.format(name=name_table)
+    def drop_table(cls, name_table: str, cascade: bool = False):
+        sql = DROP_TABLE_SQL.format(name=name_table)
+        if cascade:
+            sql += " CASCADE;"
+
+        return sql
 
     @classmethod
     def alter_table_add_column_with_constraint(
         cls,
-        name_table: str,
+        table_name: str,
         field_name: str,
         table_relation: str,
         field: str,
-        fields_type: str
-    ):
-        sql_add_column = ALTER_TABLE_ADD_COLUMN_WITH_CONSTRAINT_SQL.format(
-            name_table=name_table,
-            field_name=field_name,
-            table_relation=table_relation,
-            field=field,
-            fields_type=fields_type
-        )
+        field_type: str,
+        on_delete: str,
+        on_update: str,
+        name_constraint: str = ''
+    ) -> str:
+        args = {
+            "table_name": table_name,
+            "field_name": field_name,
+            "table_relation": table_relation,
+            "field": field,
+            "field_type": field_type,
+            "on_delete": on_delete,
+            "on_update": on_update
+        }
+        if name_constraint != "":
+            return ADD_COLUMN_FK_WITH_CONSTRAINT_SQL.format(
+                **args, name_constraint=name_constraint)
 
-        return sql_add_column
-
-    @classmethod
-    def alter_table_add_constraint(
-        cls,
-        name_table: str,
-        relation: str,
-        field_name: str,
-        table_relation: str,
-        field: str,
-        fields_type: str = ''
-    ):
-        sqls: list[str] = []
-        if fields_type:
-            sql_remove_column = cls.alter_table_drop_column(
-                name_table, field_name)
-            sql_add_column = cls.alter_table_add_column_with_constraint(
-                name_table, field_name, table_relation, field, fields_type)
-
-            sqls += [sql_remove_column, sql_add_column]
-        else:
-            sql = ALTER_TABLE_ADD_CONSTRAINT_SQL.format(
-                name_table=name_table,
-                relation=relation,
-                field_name=field_name,
-                table_relation=table_relation,
-                field=field)
-            sqls += [sql]
-
-        return sqls
+        return ADD_COLUMN_FK_SQL.format(**args)
 
     @classmethod
     def add_foreing_key_column(
         cls,
         name: str,
-        name_table: str,
-        name_in_table_fk: str,
+        table_name: str,
+        field: str,
         on_delete: str,
         on_update: str,
         name_constraint: str = ""
     ) -> str:
         args = {
             "name": name,
-            "name_table": name_table,
-            "name_in_table_fk": name_in_table_fk,
+            "table_relation": table_name,
+            "field": field,
             "on_delete": on_delete,
             "on_update": on_update
         }
         if name_constraint != "":
-            return CONSTRAINT_ADD_FOREING_KEY_COLUMN_SQL.format(
+            return ADD_FK_WITH_CONSTRAINT_WITHOUT_ALTER_SQL.format(
                 **args, name_constraint=name_constraint)
 
-        return ADD_FOREING_KEY_COLUMN_SQL.format(**args)
-
-    @classmethod
-    def alter_table_add_column(
-        cls,
-        name_table: str,
-        name: str,
-        type_sql: str
-    ) -> str:
-        return ALTER_TABLE_ADD_COLUMN_SQL.format(
-            name_table=name_table,
-            name=name,
-            type_sql=type_sql
-        )
+        return ADD_FK_COLUMN_SQL.format(**args)
 
     @classmethod
     def select_tables_sql(cls, name_table: str):
         return SELECT_TABLES_SQL
-
-    @classmethod
-    def alter_table_drop_column(cls, name_table: str, field_name: str):
-        return ALTER_TABLE_DROP_COLUMN.format(
-            name_table=name_table, field_name=field_name)
 
     @classmethod
     def parser(

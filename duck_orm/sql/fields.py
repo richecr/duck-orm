@@ -106,8 +106,8 @@ class BigInteger(Column, int):
 
 
 class Varchar(Column, str):
-    def __new__(cls):
-        return super().__new__(cls)
+    def __new__(cls, **kwargs):
+        return super().__new__(cls, kwargs)
 
     def __init__(self, length: int, unique: bool = False,
                  primary_key: bool = False, default_value=None):

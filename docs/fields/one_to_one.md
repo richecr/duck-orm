@@ -8,7 +8,7 @@ Let's look at some methods this field allows.
 ``` python
 OneToOne(
     model: Model,
-    name_relation: str,
+    name_constraint: str = "",
     on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
     on_update: ActionsEnum = ActionsEnum.CASCADE.value
 ):
@@ -16,7 +16,7 @@ OneToOne(
 
 - Parameters:
     - `model`: The `Model` that will be used in the relationship.
-    - `name_relation`: The name of the attribute that will be `FK` in 
+    - `name_constraint`: The name of the attribute that will be `FK` in 
     the other model.
     - `on_delete`: Action ON DELETE: `CASCADE`, `NO ACTION`, `RESTRICT`, 
     `SET DEFAULT` and `SET NULL`.
