@@ -36,8 +36,8 @@ keywords = "orm async aiohttp asyncio databases database postgres sqlite"
 
 setup(
     name="duck-orm",
-    version="0.1.0",
-    author="Rich Carvalho",
+    version=get_version('duck_orm'),
+    author="Rich Ramalho",
     python_requires=">=3.8",
     author_email="richelton14@gmail.com",
     description="DuckORM is package is an asynchronous ORM for Python",
