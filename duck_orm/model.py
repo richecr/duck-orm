@@ -168,7 +168,11 @@ class Model(metaclass=ModelMeta):
         fields_foreign_key: Dict[str, OneToMany] = {}
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
-                fields_all.append(name)
+                if isinstance(field, fields_type.Timestamp):
+                    fields_all.append((name, field))
+                else:
+                    fields_all.append(name)
+
                 if isinstance(field, (ManyToOne, OneToOne, ForeignKey)):
                     field_name = field.model.get_id()[0]
                     condition_with_id = Condition(field_name, '=', data[name])
