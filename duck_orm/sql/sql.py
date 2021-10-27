@@ -157,6 +157,9 @@ class QueryExecutor:
         entity = {}
         if (fields != []):
             for field in fields:
+                if isinstance(field, tuple):
+                    field = field[0]
+
                 if (row.__contains__(field)):
                     if field in fields_foreign_key.keys():
                         entity[field] = fields_foreign_key.get(field)
