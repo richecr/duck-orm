@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add parameter `name_constraint` in `OneToOne` field and documentation. #30 
 - Add `ManagerModel` and documentation. #31 
 - Changed the way that the determined between the tables is created. #31 
+- Add field Timestamp. #15
 
 ### Corretion
 - Documentation fix: portuguese words and some broken links.
