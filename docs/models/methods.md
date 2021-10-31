@@ -142,7 +142,7 @@ find_one(
     fields_includes: List[str] = [],
     fields_excludes: List[str] = [],
     conditions: List[Condition] = [],
-) -> List[Model]
+) -> Model
 ```
 
 Asynchronous method that retrieves only one object persisted in a table in the
@@ -160,6 +160,34 @@ person: Person = await Person.find_one(
         Condition('id', '=', 1)
     ]
 )
+
+print(person.id)  # 1
+print(person.first_name)  # Teste 1
+print(person.last_name)  # teste lastname
+print(person.age)  # 19
+print(person.salary)  # 5000
+```
+
+### find_by_id
+
+``` python
+find_by_id(
+    id: Any,
+    fields_includes: List[str] = [],
+    fields_excludes: List[str] = []
+) -> Model
+```
+
+Asynchronous method will do a lookup by model id
+
+- Parameters:
+    - `id`: Id value of model.
+    - `fields_includes`: The `Model` fields that are to be retrieved.
+    - `fields_excludes`: The `Model` fields that should not be retrieved.
+    - `conditions`: The conditions for filtering the object.
+
+``` python
+person: Person =  await Person.find_by_id(1)
 
 print(person.id)  # 1
 print(person.first_name)  # Teste 1
