@@ -6,14 +6,13 @@ Let's look at some methods this field allows.
 - The interface of a field `OneToMany`:
 
 ``` python
-OneToMany(model: Model, name_in_table_fk: str, name_relation: str):
+OneToMany(model: Model, name_in_table_fk: str):
 ```
 
 - Parameters:
     - `model`: The other `Model` that will be used in the relationship.
     - `name_in_table_fk`: The name of the attribute that will be `FK` in 
     the other template.
-    - `name_relation`: The name of the database-level relationship.
 
 ## Methods
 
@@ -41,36 +40,42 @@ Examples of using the methods explained above.
 class City(Model):
     __tablename__ = 'cities'
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
     name: str = Field.String(unique=True)
 
-    def relationships(self):
-        self.persons = OneToMany(
+    @classmethod
+    def relationships(cls):
+        cls.persons = OneToMany(
             model=Person,
-            name_in_table_fk='city',
-            name_relation='person_city')
-
+            name_in_table_fk='city')
 
 class Person(Model):
     __tablename__ = 'persons'
     __db__ = db
+    model_manager = model_manager
 
     id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
     first_name: str = Field.String(unique=True)
     last_name: str = Field.String(not_null=True)
     age: int = Field.BigInteger()
     salary: int = Field.BigInteger()
-    city: City = ForeignKey(model=City, name_in_table_fk='id')
 
-await City.create()
-await Person.create()
+    @classmethod
+    def relationships(cls):
+        cls.city: City = ForeignKey(
+            model=City,
+            name_in_table_fk='id',
+            name_constraint='person_city_fk')
 ```
 
 Now let's save a city and a person and then list the people of a
 certain city:
 
-``` python hl_lines="3 5 8 9 11"
+``` python hl_lines="5 7 10 11 13-14"
+await model_manager.create_all_tables()
+
 city_cg = City(name="Campina Grande")
 person_1 = Person(
     first_name="Rich", last_name="Carvalho", age=22, salary=1250, city=city_cg)
@@ -81,11 +86,12 @@ city_cg = await City.save(city_cg)
 person_1 = await Person.save(person_1)
 person_2 = await Person.save(person_2)
 
-persons: list[Person] = await city.persons.get_all() # Return all the people in this city
+# Return all the people in this city
+persons: list[Person] = await City.persons.get_all()
 
 for person in persons:
-    print(person.first_name) # Rich and Elton
-    print(person.city) # Campina Grande and Campina Grande
+    print(person.first_name)  # Rich and Elton
+    print(person.city.name)  # Campina Grande and Campina Grande
 ```
 
 On lines 8 and 9 we are saving two people from the city of Campina Grande.

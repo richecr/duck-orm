@@ -8,8 +8,8 @@ You looked the application and thought of some feature that should be added to t
 
 **_So you have two steps to follow:_**
 
-- [Open an issue detailing your idea](#criando-uma-issue)
-- [You implement the functionality yourself](#contribuir-com-implementação)
+- [Open an issue detailing your idea](#creating-an-issue)
+- [You implement the functionality yourself](#contribute-to-implementation)
 
 ## Creating an issue
 
@@ -19,7 +19,7 @@ On the [project](https://github.com/richecr/duck-orm) page, you can click on the
 - Give your issue a good name.
 - Detail very well about the purpose of the issue.
 - Images if possible.
-- Finaly, click on `Submit new issue`.
+- Finally, click on `Submit new issue`.
 
 ## Clone the repository
 
@@ -31,7 +31,9 @@ git clone https://github.com/<nome_de_usuario>/duck-orm
 
 When finished, you will have the repository on your computer and then just open in your preferred editor and make your changes.
 
-Before you should create your branch for your development:
+Before you should create your branch for your development.
+
+You must create your branch from the `develop` branch:
 
 ```sh
 git checkout -b <nome_branch>
@@ -72,15 +74,13 @@ git push
 
 But that will only in your fork, the official repository will not have its changes now what ?
 
-Calm down, now that the `Pull Request` or `PR`
+Calm down, now that the `Pull Request` or `PR` to branch `develop`.
 
 ## Contribute to implementation:
 
 After having forked and clone the project, chosen your favorite text editor. Now it's time to code.
 
 But calm there, first of all, you should **choose an issue** you want to work with. If the issue is about functionality does not exist, you should create and say you're working on it, case it exists, you must say that you intend to work on the issue. And after done that, now yes are you ready to **code**.
-
-Mas calma ai, antes de qualquer coisa, você deve **escolher uma issue** que pretender trabalhar. Se a issue que trata sobre a funcionalidade não existir, você deve criar e dizer que esta trabalhando nela, caso ela exista você deve dizer lá(caso não já tenha alguém) que pretende trabalhar na issue. E após feito isso, agora sim você está pronto para **codar**.
 
 ### Understanding folders:
 
@@ -104,7 +104,7 @@ The project code can be found in the folder `duck_orm`, we are accepting library
 
 - In the file `./model.py`: Principal arquivo, é aqui onde toda a mágica acontece. Todos os métodos que podem ser usados por um modelo estão nesse aquivo.
 
-### Como executar a aplicação:
+### How to run the application:
 
 We use [poetry](https://python-poetry.org/docs/) for easier dependency management.
 So you need to install it:
@@ -156,6 +156,8 @@ pycodestyle .
 On your fork page a yellow message will appear asking you to make a Pull Request to the original repository. Clicking will open a page for you to fill in your PR information.
 
 - Reference the issue you are working on using `#<numero_da_issue>`.
+
+- Open your PR for the `develop` branch.
 
 - Describe your modifications.
 
