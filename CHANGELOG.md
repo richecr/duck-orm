@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.0.0] - 10-22-2021: Not Released
+## [1.0.0] - 10-31-2021: Not Released
 
 ### Added
 - Implement method `find_by_id` and documentation. #9 
@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add `ManagerModel` and documentation. #31 
 - Changed the way that the determined between the tables is created. #31 
 - Add field Timestamp. #15
+- Suport Databases 0.5.3.
 
 ### Corretion
 - Documentation fix: portuguese words and some broken links.

@@ -197,7 +197,7 @@ class Model(metaclass=ModelMeta):
         result: List[cls] = []
         dialect = get_dialect(str(cls.__db__.url.dialect))
         for row in data:
-            row = dict(row.items())
+            row = dict(row._mapping.items())
             fields_all, fields_foreign_key = await cls.__parser_fields(row)
             entity = dialect.parser(row, fields_all, fields_foreign_key)
             result.append(cls(**entity))
@@ -217,7 +217,7 @@ class Model(metaclass=ModelMeta):
         dialect = get_dialect(str(cls.__db__.url.dialect))
         result: cls = None
         if (data is not None):
-            data = dict(data.items())
+            data = dict(data._mapping.items())
             fields_all, fields_foreign_key = await cls.__parser_fields(data)
             entity = dialect.parser(data, fields_all, fields_foreign_key)
             result: cls = cls(**entity)
@@ -246,7 +246,7 @@ class Model(metaclass=ModelMeta):
         data = await cls.__db__.fetch_all(sql)
         result: List = []
         for row in data:
-            row = dict(row.items())
+            row = dict(row._mapping.items())
             entity = query_executor.parser(row)
             result.append(entity)
 
@@ -290,7 +290,7 @@ class Model(metaclass=ModelMeta):
         data = await model.__get_last_insert_id()
         name, field = cls.get_id()
         if (data is not None):
-            data = dict(data.items())
+            data = dict(data._mapping.items())
             from duck_orm.sql.relationship import OneToOne
             if isinstance(field, OneToOne):
                 field_model = model._instance[name]
