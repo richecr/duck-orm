@@ -70,3 +70,14 @@ Boolean(not_null: bool = False, default_value = None)
 - Type in database postgres: `BOOLEAN`
 - Type in database sqlite: `INTEGER`
 - Type: `bool`
+
+
+### Timestamp
+
+``` python
+Timestamp()
+```
+
+- Type in database postgres: `TIMESTAMP`
+- Type in database sqlite: `TEXT`
+- Type: `datetime`
