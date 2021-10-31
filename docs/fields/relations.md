@@ -73,7 +73,7 @@ the relationships.
 
 - To create a [Many to Many](./many_to_many.md) relationship we also use the `ForeignKey` field.
 
-``` python  hl_lines="32-33"
+``` python  hl_lines="34-43"
 class User(Model):
     __tablename__ = 'users'
     __db__ = db

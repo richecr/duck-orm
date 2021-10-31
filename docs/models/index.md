@@ -2,7 +2,7 @@
 
 With `DuckORM` it's easy to create your database models and get started right away.
 
-``` python hl_lines="10"
+``` python hl_lines="12"
 from databases import Database
 
 from duck_orm.model import Model
@@ -30,7 +30,7 @@ So far you've only defined a template, but you haven't told DuckORM to create
 a table in the database, but it's easy to do that, just add a line of code:
 
 ``` python
-await Person.create()
+await model_manager.create_all_tables()
 ```
 
 ## Definition of fields
@@ -44,7 +44,7 @@ For each table created, it must necessarily have a field with the attribute
 
 And only one `primary_key` column is allowed.
 
-``` python hl_lines="5-9"
+``` python hl_lines="6-10"
 class Person(Model):
     __tablename__ = 'persons'
     __db__ = db
@@ -65,9 +65,37 @@ class Person(Model):
 
 `DuckORM` depends on `databases` library to connect to the database.
 
+### Table name
+
+Another important parameter is `__tablename__`, which is used to set the name
+ of your Model in the database.
+
+``` python hl_lines="2"
+class Person(Model):
+    __tablename__ = 'persons'
+    __db__ = db
+    model_manager = model_manager
+
+    id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
+    first_name: str = Field.String(unique=True)
+    last_name: str = Field.String(not_null=True)
+    age: int = Field.BigInteger()
+    salary: int = Field.BigInteger()
+```
+
+!!! tip
+    If you don't pass the `__tablename__` attribute, the table name will be
+    defined by the name of the `Model`.
+    
+    **Example:** In the case above, if the `__tablename__` attribute was not passed, the name
+    of the table would be `person`.
+
+
+
+
 ### Databases
 
-This parameter is `it `, and it is the instance create, bith your database 
+This parameter is `__db__`, and it is the instance create, bith your database 
 URL string.
 
 This instance needs to be passed to the `Model`.
@@ -98,31 +126,6 @@ class Person(Model):
     You must create the `databases` instance **only once** and then
     use it for all models of your system, but nothing stops you from creating
     **multiple instances**Another important parameter is __tablename__, which is used to set the name of your Model in the database. if you want to use **multiple databases**.
-
-### Table names
-
-Another important parameter is `__tablename__`, which is used to set the name
- of your Model in the database.
-
-``` python hl_lines="2"
-class Person(Model):
-    __tablename__ = 'persons'
-    __db__ = db
-    model_manager = model_manager
-
-    id_teste: int = Field.Integer(primary_key=True, auto_increment=True)
-    first_name: str = Field.String(unique=True)
-    last_name: str = Field.String(not_null=True)
-    age: int = Field.BigInteger()
-    salary: int = Field.BigInteger()
-```
-
-!!! tip
-    If you don't pass the `__tablename__` attribute, the table name will be
-    defined by the name of the `Model`.
-    
-    **Example:** In the case above, if the `__tablename__` attribute was not passed, the name
-    of the table would be `person`.
 
 ### Model Manager:
 
