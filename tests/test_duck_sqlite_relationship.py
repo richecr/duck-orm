@@ -4,31 +4,42 @@ import asyncio
 import pytest
 
 from duck_orm.model import Model
+from duck_orm.model_manager import ModelManager
 from duck_orm.sql import fields as Field
-from duck_orm.sql.relationship import ForeignKey, ManyToMany, ManyToOne, OneToOne, OneToMany
+from duck_orm.sql.relationship import (
+    ForeignKey,
+    ManyToMany,
+    OneToOne,
+    OneToMany
+)
+
 
 db = Database('sqlite:///example.db')
+
+model_manager = ModelManager()
 
 
 class City(Model):
     __tablename__ = 'cities'
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(
         primary_key=True,
         auto_increment=True)
     name: str = Field.String(unique=True)
 
-    def relationships(self):
-        self.persons = OneToMany(
+    @classmethod
+    def relationships(cls):
+        cls.persons = OneToMany(
             model=Person,
-            name_in_table_fk='city',
-            name_relation='person_city')
+            name_in_table_fk='city')
 
 
 class Person(Model):
     __tablename__ = 'persons'
     __db__ = db
+    model_manager = model_manager
 
     id_teste: int = Field.Integer(
         primary_key=True,
@@ -37,20 +48,30 @@ class Person(Model):
     last_name: str = Field.String(not_null=True)
     age: int = Field.BigInteger()
     salary: int = Field.BigInteger()
-    city: City = ForeignKey(model=City, name_in_table_fk='id')
+
+    @classmethod
+    def relationships(cls):
+        cls.city: City = ForeignKey(
+            model=City, name_in_table_fk='id', name_constraint='person_city')
 
 
 class Contact(Model):
     __tablename__ = 'contacts'
     __db__ = db
+    model_manager = model_manager
 
-    id_person = OneToOne(model=Person, name_relation='person_contact')
     phone: str = Field.String(not_null=True)
+
+    @classmethod
+    def relationships(cls):
+        cls.id_person: Person = OneToOne(
+            model=Person, name_constraint='person_contact')
 
 
 class User(Model):
     __tablename__ = 'users'
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
     name: str = Field.String()
@@ -64,6 +85,7 @@ class User(Model):
 class WorkingDay(Model):
     __tablename__ = 'working_days'
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
     week_day: str = Field.String()
@@ -77,11 +99,21 @@ class WorkingDay(Model):
 class UsersWorkingDay(Model):
     __tablename__ = 'users_working_days'
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
-    users: User = ForeignKey(model=User, name_in_table_fk='id')
-    working_days: WorkingDay = ForeignKey(
-        model=WorkingDay, name_in_table_fk='id')
+
+    @classmethod
+    def relationships(cls):
+        cls.users: User = ForeignKey(
+            model=User,
+            name_in_table_fk='id',
+            name_constraint="users_working_days")
+
+        cls.working_days: WorkingDay = ForeignKey(
+            model=WorkingDay,
+            name_in_table_fk='id',
+            name_constraint="working_days_users")
 
 
 def async_decorator(func):
@@ -98,19 +130,6 @@ def async_decorator(func):
     return run_sync
 
 
-def test_model_class():
-    assert City.get_name() == 'cities'
-    assert Person.get_name() == 'persons'
-    assert Contact.get_name() == 'contacts'
-    assert Contact.get_name() == 'contacts'
-    assert User.get_name() == 'users'
-    assert WorkingDay.get_name() == 'working_days'
-    assert UsersWorkingDay.get_name() == 'users_working_days'
-    assert isinstance(Person.city, ForeignKey)
-    assert isinstance(UsersWorkingDay.users, ForeignKey)
-    assert isinstance(UsersWorkingDay.working_days, ForeignKey)
-
-
 def test_create_sql():
     sql = Person._Model__get_create_sql()
     assert sql == "CREATE TABLE IF NOT EXISTS persons (" + \
@@ -118,10 +137,13 @@ def test_create_sql():
         "last_name TEXT NOT NULL, " + \
         "id_teste INTEGER PRIMARY KEY AUTOINCREMENT, " + \
         "first_name TEXT UNIQUE, " + \
-        "city INTEGER, " + \
-        "age BIGINT, " + \
-        " FOREIGN KEY (city) REFERENCES cities (id) " + \
-        "ON DELETE NO ACTION ON UPDATE CASCADE);"
+        "age BIGINT);"
+
+
+def test_name_constraint_fk():
+    sql = UsersWorkingDay._Model__get_create_sql()
+    assert sql == "CREATE TABLE IF NOT EXISTS users_working_days (" + \
+        "id INTEGER PRIMARY KEY AUTOINCREMENT);"
 
 
 def get_table(table, tables):
@@ -134,20 +156,7 @@ def get_table(table, tables):
 @async_decorator
 async def test_create_table():
     await db.connect()
-    await City.create()
-    await Person.create()
-    await Contact.create()
-    await User.create()
-    await WorkingDay.create()
-    await UsersWorkingDay.create()
-
-    # await City.associations()
-    # await Person.associations()
-    # await Contact.associations()
-    # await User.associations()
-    # await WorkingDay.associations()
-    # await UsersWorkingDay.associations()
-
+    await model_manager.create_all_tables()
     tables = await Person.find_all_tables()
     assert get_table('persons', tables)
     assert get_table('contacts', tables)
@@ -155,6 +164,19 @@ async def test_create_table():
     assert get_table('users', tables)
     assert get_table('working_days', tables)
     assert get_table('users_working_days', tables)
+
+
+def test_model_class():
+    assert City.get_name() == 'cities'
+    assert Person.get_name() == 'persons'
+    assert Contact.get_name() == 'contacts'
+    assert Contact.get_name() == 'contacts'
+    assert User.get_name() == 'users'
+    assert WorkingDay.get_name() == 'working_days'
+    assert UsersWorkingDay.get_name() == 'users_working_days'
+    assert isinstance(Person.city, ForeignKey)
+    assert isinstance(UsersWorkingDay.users, ForeignKey)
+    assert isinstance(UsersWorkingDay.working_days, ForeignKey)
 
 
 @async_decorator
@@ -276,9 +298,4 @@ async def test_save_users_working_days():
 
 @async_decorator
 async def test_drop_table():
-    await Contact.drop_table()
-    await Person.drop_table()
-    await City.drop_table()
-    await UsersWorkingDay.drop_table()
-    await WorkingDay.drop_table()
-    await User.drop_table()
+    await model_manager.drop_all_tables()

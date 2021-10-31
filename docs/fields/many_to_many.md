@@ -63,6 +63,7 @@ Examples of using the methods explained above.
 class User(Model):
     __tablename__ = 'users'
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
     name: str = Field.String()
@@ -72,10 +73,10 @@ class User(Model):
         cls.working_day = ManyToMany(model=WorkingDay,
                                      model_relation=UsersWorkingDay)
 
-
 class WorkingDay(Model):
     __tablename__ = 'working_days'
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
     week_day: str = Field.String()
@@ -85,25 +86,31 @@ class WorkingDay(Model):
     def relationships(cls):
         cls.users = ManyToMany(model=User, model_relation=UsersWorkingDay)
 
-
 class UsersWorkingDay(Model):
-    __tablename__ = 'users_working_days'
+    __tablename__ = 'users_working_day'
     __db__ = db
+    model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
-    users: User = ForeignKey(model=User, name_in_table_fk='id')
-    working_days: WorkingDay = ForeignKey(
-        model=WorkingDay, name_in_table_fk='id')
 
-await User.create()
-await WorkingDay.create()
-await UsersWorkingDay.create()
+    @classmethod
+    def relationships(cls):
+        cls.users: User = ForeignKey(
+            model=User,
+            name_in_table_fk='id',
+            name_constraint='user_working_day')
+        cls.working_days: WorkingDay = ForeignKey(
+            model=WorkingDay,
+            name_in_table_fk='id',
+            name_constraint='working_day_user')
 ```
 
 - Can I use the `Add` and/or `add_models` method of the `ManyToMany` field to 
 save a relationship:
 
-``` python hl_lines="10 11 13 14"
+``` python hl_lines="12 13 15 16"
+await model_manager.create_all_tables()
+
 user = await User.save(User(name='Rich'))
 user1 = await User.save(User(name='Elton'))
 

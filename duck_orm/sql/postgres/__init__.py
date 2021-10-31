@@ -1,3 +1,4 @@
+from typing import List, Mapping
 from duck_orm.sql.sql import QueryExecutor
 
 SELECT_TABLES_SQL = "SELECT tablename " + \
@@ -10,7 +11,8 @@ TYPES_SQL = {
     'float': 'FLOAT',
     'varchar': 'VARCHAR({length})',
     'char': 'CHARACTER({length})',
-    'boolean': 'BOOLEAN'
+    'boolean': 'BOOLEAN',
+    'timestamp': 'TIMESTAMP',
 }
 
 

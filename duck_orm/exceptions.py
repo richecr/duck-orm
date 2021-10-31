@@ -6,3 +6,8 @@ class OperatorException(Exception):
 class UpdateException(Exception):
     def __init__(self, *args, **kwargs):
         super(UpdateException, self).__init__(*args, **kwargs)
+
+
+class IdInvalidException(Exception):
+    def __init__(self, *args, **kwargs):
+        super(IdInvalidException, self).__init__(*args, **kwargs)
