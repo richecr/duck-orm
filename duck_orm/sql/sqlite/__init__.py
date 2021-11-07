@@ -3,7 +3,7 @@ from typing import List, Mapping
 from duck_orm.sql.sql import QueryExecutor
 
 SELECT_TABLES_SQL = "SELECT name FROM sqlite_master where type = 'table';"
-DROP_TABLE_SQL = "DROP TABLE {name};"
+DROP_TABLE_SQL = "DROP TABLE IF EXISTS {name};"
 TYPES_SQL = {
     'str': 'TEXT',
     'int': 'INTEGER',
@@ -44,6 +44,8 @@ class QuerySQLite(QueryExecutor):
                         entity[field] = fields_foreign_key.get(field)
                     else:
                         entity[field] = row.get(field)
+                elif fields_foreign_key.__contains__(field):
+                    entity[field] = fields_foreign_key[field]
                 else:
                     entity[field] = None
         else:

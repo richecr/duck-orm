@@ -1,5 +1,5 @@
 import inspect
-from typing import Any, Dict, Type
+from typing import Any, Dict, List, Type
 
 from duck_orm.model import Model
 from duck_orm.sql.fields import Column, ActionsEnum
@@ -66,17 +66,21 @@ class OneToMany(Column):
         super().__init__('OneToMany')
 
     async def add(self, model: Type[Model]):
-        model._instance[self.name_in_table_fk] = self.model_
+        if self.model_:
+            model._instance[self.name_in_table_fk] = self.model_
+        self.model_ = None
         return await self.model.save(model)
 
     async def get_all(self):
-        return await self.model.find_all(conditions=[
-            Condition(
-                self.name_in_table_fk,
-                '=',
-                self.model_[self.model_.get_id()[0]]
-            )
-        ])
+        result: List[Model] = []
+        if self.model_:
+            field_name = self.model_.get_id()[0]
+            condition = Condition(
+                self.name_in_table_fk, '=', self.model_[field_name])
+            result = await self.model.find_all(conditions=[condition])
+        else:
+            result = await self.model.find_all()
+        return result
 
 
 class ManyToOne(Column):
@@ -164,6 +168,7 @@ class ManyToMany(Column):
                     model_dict[name] = model_instance_two[name_field]
 
         model_save = self.model_relation(**model_dict)
+        self.model_ = None
         return await self.model_relation.save(model_save)
 
     async def add(self, model_instance_one: Model):
@@ -178,12 +183,15 @@ class ManyToMany(Column):
                     model_dict[name] = self.model_[name_field]
 
         model_save = self.model_relation(**model_dict)
+        self.model_ = None
         return await self.model_relation.save(model_save)
 
     async def get_all(self):
-        field_name = self.model_.get_id()[0]
-        value_field = self.model_[field_name]
-        field_name_relation = ''
+        if self.model_:
+            field_name = self.model_.get_id()[0]
+            value_field = self.model_[field_name]
+            field_name_relation = ''
+
         field_name_other_model = ''
         for name, field in inspect.getmembers(self.model_relation):
             if (isinstance(field, ForeignKey)) and not field.primary_key:
@@ -192,9 +200,14 @@ class ManyToMany(Column):
                 elif isinstance(self.model_, field.model):
                     field_name_relation = name
 
-        condition = Condition(field_name_relation, '=', value_field)
-        models_relations = await self.model_relation.find_all(
-            conditions=[condition])
+        models_relations: List[Model] = []
+        if self.model_:
+            condition = Condition(field_name_relation, '=', value_field)
+            models_relations = await self.model_relation.find_all(
+                conditions=[condition])
+        else:
+            models_relations = await self.model_relation.find_all()
+
         result_models = list(
             map(lambda model: model[field_name_other_model], models_relations))
         return result_models
