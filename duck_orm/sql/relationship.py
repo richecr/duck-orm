@@ -203,7 +203,8 @@ class ManyToMany(Column):
         models_relations: List[Model] = []
         if self.model_:
             condition = Condition(field_name_relation, '=', value_field)
-            models_relations = await self.model_relation.find_all(conditions=[condition])
+            models_relations = await self.model_relation.find_all(
+                conditions=[condition])
         else:
             models_relations = await self.model_relation.find_all()
 
