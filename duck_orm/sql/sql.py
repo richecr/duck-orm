@@ -12,7 +12,7 @@ INSERT_INTO_SQL = "INSERT INTO {table}({fields_name}) VALUES({placeholders});"
 CREATE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"
 UPDATE_SQL = "UPDATE {table} SET {fields_values} WHERE {conditions};"
 DELETE_SQL = "DELETE FROM {table} WHERE {conditions};"
-DROP_TABLE_SQL = "DROP TABLE {name}"
+DROP_TABLE_SQL = "DROP TABLE IF EXISTS {name}"
 
 ADD_COLUMN_SQL = "ALTER TABLE {table_name} " + \
     "ADD COLUMN {field_name} {field_type} "
@@ -152,7 +152,7 @@ class QueryExecutor:
             cls,
             row: Mapping,
             fields: List[str] = [],
-            fields_foreign_key={}
+            fields_foreign_key: dict = {}
     ) -> dict:
         entity = {}
         if (fields != []):
@@ -161,10 +161,12 @@ class QueryExecutor:
                     field = field[0]
 
                 if (row.__contains__(field)):
-                    if field in fields_foreign_key.keys():
+                    if fields_foreign_key.__contains__(field):
                         entity[field] = fields_foreign_key.get(field)
                     else:
                         entity[field] = row.get(field)
+                elif fields_foreign_key.__contains__(field):
+                    entity[field] = fields_foreign_key[field]
                 else:
                     entity[field] = None
         else:

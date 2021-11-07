@@ -5,7 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.0.0] - 10-31-2021: Not Released
+## [1.0.1] - 11-06-2021: Not Released
+
+### Added
+- Added `__tablename__` attribute of models in ModelManager.
+
+### Corretion
+- ModelManager `create_all_tables` method does not create the tables
+and neither the relationships already created, before it generated an error.
+- The `drop_all_tables` to ModelManager method does not drop the tables
+that do not exist, before it generated an error.
+- Fixed the `add` and `get_all` method of the `OneToMany` field.
+- Fixed the `add`, `add_models` and `get_all` method of the `ManyToMany` field.
+- Fixed `parser` method of `QueryExecutor` module.
+
+
+## [1.0.0] - 10-31-2021: Released
 
 ### Added
 - Implement method `find_by_id` and documentation. #9 
