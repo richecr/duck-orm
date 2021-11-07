@@ -15,6 +15,11 @@ class ModelMeta(type):
         model_class = super().__new__(cls, name, bases, attrs)
 
         if ("model_manager" in attrs):
+            try:
+                name = attrs['__tablename__']
+            except KeyError:
+                name = name.lower()
+
             attrs['model_manager'].add_model(name, model_class)
 
         return model_class
@@ -30,17 +35,18 @@ class Model(metaclass=ModelMeta):
         for key, value in kwargs.items():
             self._instance[key] = value
 
-        for name, field in inspect.getmembers(self):
-            from duck_orm.sql.relationship import OneToMany, ManyToMany
-            if isinstance(field, (OneToMany, ManyToMany)):
-                field.model_ = self
-                self.__setattr__(name, field)
-
     def __getattribute__(self, key: str):
         _instance = object.__getattribute__(self, '_instance')
+        result = None
         if key in _instance:
-            return _instance[key]
-        return object.__getattribute__(self, key)
+            result = _instance[key]
+        else:
+            result = object.__getattribute__(self, key)
+
+        from duck_orm.sql.relationship import OneToMany, ManyToMany
+        if (isinstance(result, (OneToMany, ManyToMany))):
+            result.model_ = self
+        return result
 
     def __getitem__(self, key):
         return getattr(self, key)
@@ -120,6 +126,7 @@ class Model(metaclass=ModelMeta):
 
     @ classmethod
     def __get_fields_all(cls) -> List[str]:
+        cls.relationships()
         fields_all: List[str] = []
         for name, field in inspect.getmembers(cls):
             from duck_orm.sql.relationship import OneToMany, ManyToMany
@@ -180,6 +187,8 @@ class Model(metaclass=ModelMeta):
                         condition_with_id
                     ])
                     fields_foreign_key[name] = model_entity
+                elif isinstance(field, OneToMany):
+                    fields_foreign_key[name] = field
 
         return fields_all, fields_foreign_key
 

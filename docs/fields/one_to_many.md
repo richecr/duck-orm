@@ -83,8 +83,8 @@ person_2 = Person(
     first_name="Elton", last_name="Carvalho", age=25, salary=1450, city=city_cg)
 
 city_cg = await City.save(city_cg)
-person_1 = await Person.save(person_1)
-person_2 = await Person.save(person_2)
+person_1 = await City.persons.add(person_1)
+person_2 = await City.persons.add(person_2)
 
 # Return all the people in this city
 persons: list[Person] = await City.persons.get_all()
