@@ -1,0 +1,933 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Async database support for Python.">
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.6">
+    
+    
+      
+        <title>Contributing - Duck-ORM</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.a57b2b03.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#4051b5">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+    
+      
+  
+
+
+
+  
+  
+
+
+
+  <script>window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-72514911-3","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),"undefined"!=typeof location$&&location$.subscribe(function(e){ga("send","pageview",e.pathname)})})</script>
+  <script async src="https://www.google-analytics.com/analytics.js"></script>
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="indigo" data-md-color-accent="">
+  
+    
+    <script>function __prefix(e){return new URL("..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#contributing" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Duck-ORM" class="md-header__button md-logo" aria-label="Duck-ORM" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Duck-ORM
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Contributing
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/richecr/duck-orm/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    richecr/duck-orm
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Duck-ORM" class="md-nav__button md-logo" aria-label="Duck-ORM" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    Duck-ORM
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/richecr/duck-orm/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    richecr/duck-orm
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Contributing
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Contributing
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#addupdate-features" class="md-nav__link">
+    Add/Update Features
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-an-issue" class="md-nav__link">
+    Creating an issue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clone-the-repository" class="md-nav__link">
+    Clone the repository
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contribute-to-implementation" class="md-nav__link">
+    Contribute to implementation:
+  </a>
+  
+    <nav class="md-nav" aria-label="Contribute to implementation:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#understanding-folders" class="md-nav__link">
+    Understanding folders:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-run-the-application" class="md-nav__link">
+    How to run the application:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-the-tests" class="md-nav__link">
+    Run the tests:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entering-the-standards" class="md-nav__link">
+    Entering the standards:
+  </a>
+  
+    <nav class="md-nav" aria-label="Entering the standards:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pycodestyle" class="md-nav__link">
+    Pycodestyle:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performing-a-pull-request-pr" class="md-nav__link">
+    Performing a Pull Request - PR
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4">
+          Models
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Models" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Models
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/" class="md-nav__link">
+        Definition
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/methods/" class="md-nav__link">
+        Methods
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5">
+          Fields
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Fields" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Fields
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fields/" class="md-nav__link">
+        Field Types
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5_2" type="checkbox" id="__nav_5_2" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5_2">
+          Relationships
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Relationships" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_2">
+          <span class="md-nav__icon md-icon"></span>
+          Relationships
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fields/relations/" class="md-nav__link">
+        Relations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fields/foreignkey/" class="md-nav__link">
+        ForeignKey
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fields/one_to_one/" class="md-nav__link">
+        OneToOne
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fields/one_to_many/" class="md-nav__link">
+        OneToMany
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fields/many_to_many/" class="md-nav__link">
+        ManyToMany
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#addupdate-features" class="md-nav__link">
+    Add/Update Features
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-an-issue" class="md-nav__link">
+    Creating an issue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clone-the-repository" class="md-nav__link">
+    Clone the repository
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contribute-to-implementation" class="md-nav__link">
+    Contribute to implementation:
+  </a>
+  
+    <nav class="md-nav" aria-label="Contribute to implementation:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#understanding-folders" class="md-nav__link">
+    Understanding folders:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-run-the-application" class="md-nav__link">
+    How to run the application:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-the-tests" class="md-nav__link">
+    Run the tests:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entering-the-standards" class="md-nav__link">
+    Entering the standards:
+  </a>
+  
+    <nav class="md-nav" aria-label="Entering the standards:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pycodestyle" class="md-nav__link">
+    Pycodestyle:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performing-a-pull-request-pr" class="md-nav__link">
+    Performing a Pull Request - PR
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/richecr/duck-orm/edit/master/docs/CONTRIBUTING.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="contributing">Contributing</h1>
+<blockquote>
+<p>You can contribute at will, you will always be welcome. But we have some rules to be followed so that everyone is well received by everyone and that everyone can contribute in a happy way.</p>
+</blockquote>
+<h2 id="addupdate-features">Add/Update Features</h2>
+<p>You looked the application and thought of some feature that should be added to the project ?</p>
+<p><strong><em>So you have two steps to follow:</em></strong></p>
+<ul>
+<li><a href="#creating-an-issue">Open an issue detailing your idea</a></li>
+<li><a href="#contribute-to-implementation">You implement the functionality yourself</a></li>
+</ul>
+<h2 id="creating-an-issue">Creating an issue</h2>
+<p>On the <a href="https://github.com/richecr/duck-orm">project</a> page, you can click on the <code>Issues</code> button and a <code>new issue</code> button will appear on the page, then just select and follow the following steps:</p>
+<ul>
+<li>Select the type of your issue: <code>Bug, Feature or Discussion</code>.</li>
+<li>Give your issue a good name.</li>
+<li>Detail very well about the purpose of the issue.</li>
+<li>Images if possible.</li>
+<li>Finaly, click on <code>Submit new issue</code>.</li>
+</ul>
+<h2 id="clone-the-repository">Clone the repository</h2>
+<p>On the home page of the <a href="https://github.com/richecr/duck-orm">repository</a> there is a <code>Fork</code> button. When you click, just wait to complete the fork. And then it will create the repository in your account. And now just clone in your machine, this:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>git clone https://github.com/&lt;nome_de_usuario&gt;/duck-orm
+</code></pre></div>
+</td></tr></table>
+<p>When finished, you will have the repository on your computer and then just open in your preferred editor and make your changes.</p>
+<p>Before you should create your branch for your development.</p>
+<p>You must create your branch from the <code>develop</code> branch:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>git checkout -b &lt;nome_branch&gt;
+</code></pre></div>
+</td></tr></table>
+<p>For the name of the branch use the number of the issue to facilitate, ex: <code>issue_17</code>.</p>
+<p>And now can begin the development.</p>
+<p>When you have finished make your changes, you should commit your changes, but first:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>git add .
+</code></pre></div>
+</td></tr></table>
+<p>The above command will prepare all modified files to be committed, going through all the changes that were made by you where you will decide if the change will be added(you must be inside the project folder to use the command). Now just commit the changes:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>git commit -m <span class="s2">&quot;&lt;Sua_Mensagem&gt;&quot;</span>
+</code></pre></div>
+</td></tr></table>
+<p>Remember to use message clear. If what you're solving already has an issue open, reference issue in commit.
+Ex: <code>git commit -m "#17 - Add contributing.md"</code></p>
+<p>And finally, you will submit the changes to the remote repository:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>git push --set-upstream origin &lt;nome_branch&gt;
+</code></pre></div>
+</td></tr></table>
+<p>This is only the first time that submit a new branch to the remote repository, next times, just:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>git push
+</code></pre></div>
+</td></tr></table>
+<p>But that will only in your fork, the official repository will not have its changes now what ?</p>
+<p>Calm down, now that the <code>Pull Request</code> or <code>PR</code> to branch <code>develop</code>.</p>
+<h2 id="contribute-to-implementation">Contribute to implementation:</h2>
+<p>After having forked and clone the project, chosen your favorite text editor. Now it's time to code.</p>
+<p>But calm there, first of all, you should <strong>choose an issue</strong> you want to work with. If the issue is about functionality does not exist, you should create and say you're working on it, case it exists, you must say that you intend to work on the issue. And after done that, now yes are you ready to <strong>code</strong>.</p>
+<h3 id="understanding-folders">Understanding folders:</h3>
+<p>The project code can be found in the folder <code>duck_orm</code>, we are accepting library name hints as well..</p>
+<ul>
+<li>
+<p>In the folder <code>duck_orm/utils</code>: Possui os arquivos que possuem funções que podem ser usadas por todo o projeto.</p>
+</li>
+<li>
+<p>In the folder <code>docs</code>: Possui os arquivos de documentação da biblioteca.</p>
+</li>
+<li>
+<p>In the folder <code>duck_orm/sql</code>: Possui todos os arquivos sobre as funcionalidades relacionadas com SQL, seja do Postgres e/ou SQLite.</p>
+<ul>
+<li>In the folder <code>./postgres</code>: Possui a classe QueryPostgres que herda de QueryExecutor, onde é responsável por gerar todos os códigos SQL que irão funcionar no Postgres. Se algum SQL for diferente para o banco, então basta sobrescrever a função e então retornar o SQL suportado.</li>
+<li>In the folder <code>./sqlite</code>:  Possui a classe QuerySQLite que herda de QueryExecutor, onde é responsável por gerar todos os códigos SQL que irão funcionar no SQLite. Se algum SQL for diferente para o banco, então basta sobrescrever a função e então retornar o SQL suportado.</li>
+<li>In the file <code>./condition.py</code>: Possui a classe que é usada para adicionar filtros nas consultas do DuckORM.</li>
+<li>In the file <code>./fields.py</code>: Possui todas as classes que representam os tipos que são suportados pelo DuckORM e que fazem o tratamento para os tipos SQL.</li>
+<li>In the file <code>./operator.py</code>: Possui a classe que é usada para adicionar validar os operatores condicionais, usados pela classe <code>Condition</code>.</li>
+<li>In the file <code>./relationship.py</code>: Possui todas as classes que representam os tipos de relacionamentos que são suportados pelo DuckORM e que fazem o tratamento para os relacionamentos para SQL. </li>
+<li>In the file <code>./sql.py</code>: Possui a classe QueryExecutor, na qual todos as classes Query{nome_banco} herdam. É aqui onde é montado todos os comandos SQL e caso um SQL seja diferentes entre os bancos suportados, basta sobrescrever o método na classe Query{nome_banco}. </li>
+</ul>
+</li>
+<li>
+<p>In the file <code>./exceptions.py</code>: Possui todas as exceções usadas no DuckORM.</p>
+</li>
+<li>
+<p>In the file <code>./model.py</code>: Principal arquivo, é aqui onde toda a mágica acontece. Todos os métodos que podem ser usados por um modelo estão nesse aquivo.</p>
+</li>
+</ul>
+<h3 id="how-to-run-the-application">How to run the application:</h3>
+<p>We use <a href="https://python-poetry.org/docs/">poetry</a> for easier dependency management.
+So you need to install it:</p>
+<ul>
+<li>Install poetry: To install you can follow the steps of their own documentation <a href="https://python-poetry.org/docs/#installation">here</a></li>
+</ul>
+<p>Now you should create virtualenv:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>poetry shell
+</code></pre></div>
+</td></tr></table>
+<p>This will create a virtualenv for this project.</p>
+<p>Now you need to install the dependencies:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>poetry install
+</code></pre></div>
+</td></tr></table>
+<ul>
+<li>You are now ready to implement your functionality/fix.</li>
+</ul>
+<h3 id="run-the-tests">Run the tests:</h3>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>pytest .
+</code></pre></div>
+</td></tr></table>
+<h3 id="entering-the-standards">Entering the standards:</h3>
+<p>We chose to follow the <a href="https://www.python.org/dev/peps/pep-0008/">PEP 8</a> standard. To do this, install the <a href="https://marketplace.visualstudio.com/items?itemName=ms-python.python">Python extension for VSCode</a>. Another solution is to use pycodestyle.</p>
+<h4 id="pycodestyle">Pycodestyle:</h4>
+<p>You can install pycodestyle with the command:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>poetry add pycodestyle
+</code></pre></div>
+</td></tr></table>
+<ul>
+<li>To run pycodestyle:</li>
+</ul>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>pycodestyle .
+</code></pre></div>
+</td></tr></table>
+<h2 id="performing-a-pull-request-pr">Performing a Pull Request - PR</h2>
+<p>On your fork page a yellow message will appear asking you to make a Pull Request to the original repository. Clicking will open a page for you to fill in your PR information.</p>
+<ul>
+<li>
+<p>Reference the issue you are working on using <code>#&lt;numero_da_issue&gt;</code>.</p>
+</li>
+<li>
+<p>Open your PR for the <code>develop</code> branch.</p>
+</li>
+<li>
+<p>Describe your modifications.</p>
+</li>
+<li>
+<p>Wait for your PR evaluation, and it may happen that we ask for some changes to be made.</p>
+</li>
+</ul>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../getting_started/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Getting Started" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Getting Started
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../models/" class="md-footer__link md-footer__link--next" aria-label="Next: Definition" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Definition
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        
+          Made with
+          <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+            Material for MkDocs
+          </a>
+        
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.b1047164.min.js"></script>
+      
+    
+  </body>
+</html>
