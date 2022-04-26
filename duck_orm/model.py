@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple, Type, TypeVar
+from typing import Any, Callable, Dict, List, Tuple, Type, TypeVar
 from databases import Database
 import inspect
 
@@ -7,6 +7,7 @@ from duck_orm.exceptions import IdInvalidException, UpdateException
 from duck_orm.sql import fields as fields_type
 from duck_orm.sql.condition import Condition
 
+_T = TypeVar('_T')
 T = TypeVar('T', bound='Model')
 
 
@@ -14,7 +15,7 @@ class ModelMeta(type):
     def __new__(cls, name, bases, attrs):
         model_class = super().__new__(cls, name, bases, attrs)
 
-        if ("model_manager" in attrs):
+        if 'model_manager' in attrs:
             try:
                 name = attrs['__tablename__']
             except KeyError:
@@ -25,6 +26,17 @@ class ModelMeta(type):
         return model_class
 
 
+def __dataclass_transform__(
+    *,
+    eq_default: bool = True,
+    order_default: bool = False,
+    kw_only_default: bool = False,
+    field_descriptors=(())
+) -> Callable[[_T], _T]:
+    return lambda a: a
+
+
+@__dataclass_transform__(kw_only_default=True)
 class Model(metaclass=ModelMeta):
     __tablename__: str = ''
     __db__: Database
@@ -44,7 +56,8 @@ class Model(metaclass=ModelMeta):
             result = object.__getattribute__(self, key)
 
         from duck_orm.sql.relationship import OneToMany, ManyToMany
-        if (isinstance(result, (OneToMany, ManyToMany))):
+
+        if isinstance(result, (OneToMany, ManyToMany)):
             result.model_ = self
         return result
 
@@ -64,13 +77,17 @@ class Model(metaclass=ModelMeta):
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
                 from duck_orm.sql.relationship import ForeignKey, OneToOne
+
                 sql = ''
                 if isinstance(field, ForeignKey):
                     field_id = field.model.get_id()[1]
                     sql_field_fk = field_id.type_sql(dialect)
                     sql = field.sql(
-                        dialect=dialect, name=name, table_name=cls.get_name(),
-                        type_sql=sql_field_fk)
+                        dialect=dialect,
+                        name=name,
+                        table_name=cls.get_name(),
+                        type_sql=sql_field_fk,
+                    )
                 elif isinstance(field, OneToOne):
                     if dialect == 'sqlite':
                         await cls.drop_table()
@@ -79,21 +96,24 @@ class Model(metaclass=ModelMeta):
                         field_id = field.model.get_id()[1]
                         type_sql = field_id.column_sql(dialect)
                         sql = field.sql(
-                            dialect=dialect, field_name=name,
-                            type_sql=type_sql, table_name=cls.get_name())
+                            dialect=dialect,
+                            field_name=name,
+                            type_sql=type_sql,
+                            table_name=cls.get_name(),
+                        )
                 sqls.append(sql)
 
         for sql in sqls:
             await cls.__db__.execute(sql)
 
-    @ classmethod
+    @classmethod
     def get_name(cls):
         if cls.__tablename__ == '':
             return cls.__name__.lower()
 
         return cls.__tablename__
 
-    @ classmethod
+    @classmethod
     def __get_create_sql(cls):
         fields: List[Tuple[str, str]] = []
         sql_unique_fields = []
@@ -102,57 +122,61 @@ class Model(metaclass=ModelMeta):
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
                 from duck_orm.sql.relationship import OneToOne
-                if (isinstance(field, OneToOne)):
+
+                if isinstance(field, OneToOne):
                     field_id = field.model.get_id()[1]
                     table_name = field.model.get_name()
                     fields.append((name, field_id.column_sql(dialect)))
                     fields.append(
-                        ('', field.create_sql(dialect, name, table_name)))
+                        ('', field.create_sql(dialect, name, table_name))
+                    )
                 else:
                     fields.insert(0, (name, field.column_sql(dialect)))
 
         if sql_unique_fields:
-            sql = "UNIQUE(" + ", ".join(sql_unique_fields) + ")"
+            sql = 'UNIQUE(' + ', '.join(sql_unique_fields) + ')'
             fields.append(('', sql))
 
-        fields_config = [" ".join(field) for field in fields]
+        fields_config = [' '.join(field) for field in fields]
         query_executor = get_dialect(str(dialect))
         return query_executor.create_sql(cls.get_name(), fields_config)
 
-    @ classmethod
+    @classmethod
     async def create(cls):
         sql = cls.__get_create_sql()
         return await cls.__db__.execute(sql)
 
-    @ classmethod
+    @classmethod
     def __get_fields_all(cls) -> List[str]:
         cls.relationships()
         fields_all: List[str] = []
         for name, field in inspect.getmembers(cls):
             from duck_orm.sql.relationship import OneToMany, ManyToMany
+
             if isinstance(field, fields_type.Column) and not isinstance(
-                    field, (OneToMany, ManyToMany)):
+                field, (OneToMany, ManyToMany)
+            ):
                 fields_all.append(name)
 
         return fields_all
 
-    @ classmethod
+    @classmethod
     def get_id(cls):
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
-                if (field.primary_key):
+                if field.primary_key:
                     return name, field
 
         raise IdInvalidException('Model has no primary key!')
 
-    @ classmethod
+    @classmethod
     def __get_select_sql(
-            cls,
-            fields_includes: List[str] = [],
-            fields_excludes: List[str] = [],
-            conditions: List[Condition] = [],
-            limit: int = None
-    ) -> tuple[str, list[str]]:
+        cls,
+        fields_includes: List[str] = [],
+        fields_excludes: List[str] = [],
+        conditions: List[Condition] = [],
+        limit: int = None,
+    ) -> Tuple[str, List[str]]:
         if fields_includes == []:
             fields_includes = cls.__get_fields_all()
         fields_includes = list(set(fields_includes) - set(fields_excludes))
@@ -161,17 +185,24 @@ class Model(metaclass=ModelMeta):
         conditions_str = '1 = 1'
         if len(conditions) > 0:
             conditions_str = ' and '.join(
-                map(lambda condition: condition.get_condition(), conditions))
+                map(lambda condition: condition.get_condition(), conditions)
+            )
 
         sql = query_executor.select_sql(
-            cls.get_name(), fields_includes, conditions_str, limit)
+            cls.get_name(), fields_includes, conditions_str, limit
+        )
         return sql, fields_includes
 
     @classmethod
     async def __parser_fields(cls, data: dict):
         fields_all: List[str] = []
         from duck_orm.sql.relationship import (
-            OneToMany, ManyToOne, OneToOne, ForeignKey)
+            OneToMany,
+            ManyToOne,
+            OneToOne,
+            ForeignKey,
+        )
+
         fields_foreign_key: Dict[str, OneToMany] = {}
         for name, field in inspect.getmembers(cls):
             if isinstance(field, fields_type.Column):
@@ -183,25 +214,26 @@ class Model(metaclass=ModelMeta):
                 if isinstance(field, (ManyToOne, OneToOne, ForeignKey)):
                     field_name = field.model.get_id()[0]
                     condition_with_id = Condition(field_name, '=', data[name])
-                    model_entity = await field.model.find_one(conditions=[
-                        condition_with_id
-                    ])
+                    model_entity = await field.model.find_one(
+                        conditions=[condition_with_id]
+                    )
                     fields_foreign_key[name] = model_entity
                 elif isinstance(field, OneToMany):
                     fields_foreign_key[name] = field
 
         return fields_all, fields_foreign_key
 
-    @ classmethod
+    @classmethod
     async def find_all(
         cls: Type[T],
         fields_includes: List[str] = [],
         fields_excludes: List[str] = [],
         conditions: List[Condition] = [],
-        limit: int = None
+        limit: int = None,
     ):
         sql, fields_includes = cls.__get_select_sql(
-            fields_includes, fields_excludes, conditions, limit=limit)
+            fields_includes, fields_excludes, conditions, limit=limit
+        )
         data = await cls.__db__.fetch_all(sql)
         result: List[cls] = []
         dialect = get_dialect(str(cls.__db__.url.dialect))
@@ -213,19 +245,20 @@ class Model(metaclass=ModelMeta):
 
         return result
 
-    @ classmethod
+    @classmethod
     async def find_one(
         cls: Type[T],
         fields_includes: List[str] = [],
         fields_excludes: List[str] = [],
-        conditions: List[Condition] = []
+        conditions: List[Condition] = [],
     ):
         sql, fields_includes = cls.__get_select_sql(
-            fields_includes, fields_excludes, conditions, limit=1)
+            fields_includes, fields_excludes, conditions, limit=1
+        )
         data = await cls.__db__.fetch_one(sql)
         dialect = get_dialect(str(cls.__db__.url.dialect))
         result: cls = None
-        if (data is not None):
+        if data is not None:
             data = dict(data._mapping.items())
             fields_all, fields_foreign_key = await cls.__parser_fields(data)
             entity = dialect.parser(data, fields_all, fields_foreign_key)
@@ -237,18 +270,18 @@ class Model(metaclass=ModelMeta):
         cls: Type[T],
         id: Any,
         fields_includes: List[str] = [],
-        fields_excludes: List[str] = []
+        fields_excludes: List[str] = [],
     ) -> Type[T]:
         name = cls.get_id()[0]
-        condition = Condition(name, "=", id)
+        condition = Condition(name, '=', id)
         result = await cls.find_one(
             fields_includes=fields_includes,
             fields_excludes=fields_excludes,
-            conditions=[condition]
+            conditions=[condition],
         )
         return result
 
-    @ classmethod
+    @classmethod
     async def find_all_tables(cls):
         query_executor = get_dialect(str(cls.__db__.url.dialect))
         sql = query_executor.select_tables_sql(cls.get_name())
@@ -274,11 +307,12 @@ class Model(metaclass=ModelMeta):
 
             fields_values[name] = value
             fields_name.append(name)
-            placeholders.append(":{field}".format(field=name))
+            placeholders.append(':{field}'.format(field=name))
 
         query_executor = get_dialect(str(self.__db__.url.dialect))
         sql = query_executor.insert_sql(
-            self.get_name(), fields_name, placeholders)
+            self.get_name(), fields_name, placeholders
+        )
         return sql, fields_values
 
     @classmethod
@@ -292,15 +326,16 @@ class Model(metaclass=ModelMeta):
         sql = self.__get_sql_last_inserted_id()
         return await self.__db__.fetch_one(sql)
 
-    @ classmethod
+    @classmethod
     async def save(cls, model: T):
         sql, values = model.__get_insert_sql()
         await cls.__db__.execute(query=sql, values=values)
         data = await model.__get_last_insert_id()
         name, field = cls.get_id()
-        if (data is not None):
+        if data is not None:
             data = dict(data._mapping.items())
             from duck_orm.sql.relationship import OneToOne
+
             if isinstance(field, OneToOne):
                 field_model = model._instance[name]
                 if isinstance(field_model, Model):
@@ -315,15 +350,18 @@ class Model(metaclass=ModelMeta):
         field_name_id = self.get_id()[0]
         field_id = self[field_name_id]
 
-        if (field_id is None):
-            msg = "Updating by ID requires that the object {} " + \
-                  "has an ID field"
+        if field_id is None:
+            msg = (
+                'Updating by ID requires that the object {} '
+                + 'has an ID field'
+            )
             raise UpdateException(msg.format(self))
 
         condition = ['{} = {}'.format(field_name_id, field_id)]
         query_executor = get_dialect(str(self.__db__.url.dialect))
         sql = query_executor.update_sql(
-            self.get_name(), fields, conditions=condition)
+            self.get_name(), fields, conditions=condition
+        )
 
         return sql, field_name_id, field_id
 
@@ -335,7 +373,7 @@ class Model(metaclass=ModelMeta):
                 name_id_fk = value.get_id()[0]
                 value = value[name_id_fk]
 
-            fields_tmp = "{field} = :{field}".format(field=name)
+            fields_tmp = '{field} = :{field}'.format(field=name)
             fields.append(fields_tmp)
             values[name] = value
 
@@ -344,31 +382,31 @@ class Model(metaclass=ModelMeta):
         condition_with_id = Condition(field_name_id, '=', field_id)
         return await self.find_one(conditions=[condition_with_id])
 
-    @ classmethod
+    @classmethod
     def __drop_table(
-            cls, dialect: str, name_table: str, cascade: bool = False):
+        cls, dialect: str, name_table: str, cascade: bool = False
+    ):
         query_executor = get_dialect(dialect)
         return query_executor.drop_table(name_table, cascade)
 
-    @ classmethod
+    @classmethod
     async def drop_table(cls, cascade: bool = False):
         sql = cls.__drop_table(
-            str(cls.__db__.url.dialect), cls.get_name(), cascade)
+            str(cls.__db__.url.dialect), cls.get_name(), cascade
+        )
         await cls.__db__.execute(sql)
 
-    @ classmethod
+    @classmethod
     def __delete(
-            cls,
-            name_table: str,
-            conditions: List[Condition],
-            dialect: str
+        cls, name_table: str, conditions: List[Condition], dialect: str
     ) -> str:
         query_executor = get_dialect(dialect)
         conditions_str = ' and '.join(
-            map(lambda condition: condition.get_condition(), conditions))
+            map(lambda condition: condition.get_condition(), conditions)
+        )
         return query_executor.delete_sql(name_table, conditions_str)
 
-    @ classmethod
+    @classmethod
     async def delete(cls, conditions: List[Condition]):
         try:
             dialect = cls.__db__.url.dialect

@@ -1,6 +1,5 @@
 from typing import Dict
 from enum import Enum
-from datetime import datetime
 
 from duck_orm.sql.sqlite import TYPES_SQL as TYPES_SQL_LITE
 from duck_orm.sql.postgres import TYPES_SQL as TYPES_SQL_POSTGRES
@@ -69,7 +68,7 @@ class Column:
             raise Exception(message.format(on_update=on_update))
 
 
-class String(Column, str):
+class String(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
@@ -80,7 +79,7 @@ class String(Column, str):
             'str', unique, primary_key, not_null, default_value=default_value)
 
 
-class Integer(Column, int):
+class Integer(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
@@ -96,7 +95,7 @@ class Integer(Column, int):
         )
 
 
-class BigInteger(Column, int):
+class BigInteger(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
@@ -106,9 +105,9 @@ class BigInteger(Column, int):
             'bigint', unique, primary_key, default_value=default_value)
 
 
-class Varchar(Column, str):
+class Varchar(Column):
     def __new__(cls, **kwargs):
-        return super().__new__(cls, kwargs)
+        return super().__new__(cls)
 
     def __init__(self, length: int, unique: bool = False,
                  primary_key: bool = False, default_value=None):
@@ -130,7 +129,7 @@ class Boolean(Column):
             'boolean', not_null=not_null, default_value=default_value)
 
 
-class Timestamp(Column, datetime):
+class Timestamp(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls, 2021, 1, 1)
 

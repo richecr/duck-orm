@@ -12,7 +12,7 @@ class ModelManager:
     def remove_model(self, name: str):
         del self.models[name]
 
-    def __get_table_name(self, table_obj: dict[str, str]) -> str:
+    def __get_table_name(self, table_obj: Dict[str, str]) -> str:
         try:
             return table_obj['name']
         except KeyError:
