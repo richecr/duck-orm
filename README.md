@@ -61,7 +61,7 @@ await Person.create()
 - And then the definition of the fields, their types and restrictions.
 - And finally, the table creation in the database.
 
-## Author:
+## Author
 
 - Rich Ramalho - [@richecr](https://github.com/richecr) - [@richzinho_ecr](https://twitter.com/richzinho_ecr)
 

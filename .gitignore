@@ -1,5 +1,4 @@
 example.db
-.vscode
 __pycache__/
 Main.py
 .coverage
