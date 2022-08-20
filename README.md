@@ -61,6 +61,10 @@ await Person.create()
 - And then the definition of the fields, their types and restrictions.
 - And finally, the table creation in the database.
 
+## Author:
+
+- Rich Ramalho - [@richecr](https://github.com/richecr) - [@richzinho_ecr](https://twitter.com/richzinho_ecr)
+
 ## License
 
 `DuckORM` is built as an open-source tool and remains completely free(MIT license).
