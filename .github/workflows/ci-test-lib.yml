@@ -18,8 +18,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    env:
-      DATABASE_TEST_URL: ${{ secrets.DATABASE_TEST_URL }}
     - uses: actions/checkout@v3
     - name: Set up Python 3.9
       uses: actions/setup-python@v4
@@ -43,6 +41,8 @@ jobs:
     - name: Install library
       run: poetry install --no-interaction
     - name: Run tests
+      env:
+        DATABASE_TEST_URL: ${{ secrets.DATABASE_TEST_URL }}
       run: |
         source .venv/bin/activate
         pytest .
