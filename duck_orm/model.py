@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Tuple, Type, TypeVar
 from databases import Database
 import inspect
+import logging
 
 from duck_orm.utils.functions import get_dialect
 from duck_orm.exceptions import IdInvalidException, UpdateException
@@ -81,9 +82,11 @@ class Model(metaclass=ModelMeta):
                         sql = field.sql(
                             dialect=dialect, field_name=name,
                             type_sql=type_sql, table_name=cls.get_name())
-                sqls.append(sql)
+                if sql != '':
+                    sqls.append(sql)
 
         for sql in sqls:
+            logging.info("SQL Executed: {}".format(sql))
             await cls.__db__.execute(sql)
 
     @ classmethod
@@ -122,6 +125,7 @@ class Model(metaclass=ModelMeta):
     @ classmethod
     async def create(cls):
         sql = cls.__get_create_sql()
+        logging.info("SQL Executed: {}".format(sql))
         return await cls.__db__.execute(sql)
 
     @ classmethod
@@ -200,11 +204,14 @@ class Model(metaclass=ModelMeta):
         conditions: List[Condition] = [],
         limit: int = None
     ):
+        logging.info("Find all in table: {}".format(cls.get_name()))
         sql, fields_includes = cls.__get_select_sql(
             fields_includes, fields_excludes, conditions, limit=limit)
+        logging.info("SQL Executed: {}".format(sql))
         data = await cls.__db__.fetch_all(sql)
         result: List[cls] = []
         dialect = get_dialect(str(cls.__db__.url.dialect))
+        logging.info("Parsing fields of result.")
         for row in data:
             row = dict(row._mapping.items())
             fields_all, fields_foreign_key = await cls.__parser_fields(row)
@@ -220,11 +227,14 @@ class Model(metaclass=ModelMeta):
         fields_excludes: List[str] = [],
         conditions: List[Condition] = []
     ):
+        logging.info("Find one in table: {}".format(cls.get_name()))
         sql, fields_includes = cls.__get_select_sql(
             fields_includes, fields_excludes, conditions, limit=1)
+        logging.info("SQL Executed: {}".format(sql))
         data = await cls.__db__.fetch_one(sql)
         dialect = get_dialect(str(cls.__db__.url.dialect))
         result: cls = None
+        logging.info("Parsing fields of result.")
         if (data is not None):
             data = dict(data._mapping.items())
             fields_all, fields_foreign_key = await cls.__parser_fields(data)
@@ -239,6 +249,7 @@ class Model(metaclass=ModelMeta):
         fields_includes: List[str] = [],
         fields_excludes: List[str] = []
     ) -> Type[T]:
+        logging.info("Find by id in table: {}".format(cls.get_name()))
         name = cls.get_id()[0]
         condition = Condition(name, "=", id)
         result = await cls.find_one(
@@ -250,10 +261,13 @@ class Model(metaclass=ModelMeta):
 
     @ classmethod
     async def find_all_tables(cls):
+        logging.info("Find all tables.")
         query_executor = get_dialect(str(cls.__db__.url.dialect))
         sql = query_executor.select_tables_sql(cls.get_name())
+        logging.info("SQL Executed: {}".format(sql))
         data = await cls.__db__.fetch_all(sql)
         result: List = []
+        logging.info("Parsing fields of result.")
         for row in data:
             row = dict(row._mapping.items())
             entity = query_executor.parser(row)
@@ -290,14 +304,18 @@ class Model(metaclass=ModelMeta):
 
     async def __get_last_insert_id(self):
         sql = self.__get_sql_last_inserted_id()
+        logging.info("SQL Executed: {}".format(sql))
         return await self.__db__.fetch_one(sql)
 
     @ classmethod
     async def save(cls, model: T):
+        logging.info("Save data in table: {}.".format(cls.get_name()))
         sql, values = model.__get_insert_sql()
+        logging.info("SQL Executed: {}".format(sql))
         await cls.__db__.execute(query=sql, values=values)
         data = await model.__get_last_insert_id()
         name, field = cls.get_id()
+        logging.info("Parsing fields of result.")
         if (data is not None):
             data = dict(data._mapping.items())
             from duck_orm.sql.relationship import OneToOne
@@ -328,6 +346,7 @@ class Model(metaclass=ModelMeta):
         return sql, field_name_id, field_id
 
     async def update(self, **kwargs):
+        logging.info("Update register in table: {}.".format(self.get_name()))
         fields = []
         values = {}
         for name, value in kwargs.items():
@@ -340,6 +359,7 @@ class Model(metaclass=ModelMeta):
             values[name] = value
 
         sql, field_name_id, field_id = self.__update_sql(fields)
+        logging.info("SQL Executed: {}".format(sql))
         await self.__db__.execute(query=sql, values=values)
         condition_with_id = Condition(field_name_id, '=', field_id)
         return await self.find_one(conditions=[condition_with_id])
@@ -352,8 +372,10 @@ class Model(metaclass=ModelMeta):
 
     @ classmethod
     async def drop_table(cls, cascade: bool = False):
+        logging.info("Drop table: {}.".format(cls.get_name()))
         sql = cls.__drop_table(
             str(cls.__db__.url.dialect), cls.get_name(), cascade)
+        logging.info("SQL Executed: {}".format(sql))
         await cls.__db__.execute(sql)
 
     @ classmethod
@@ -370,9 +392,12 @@ class Model(metaclass=ModelMeta):
 
     @ classmethod
     async def delete(cls, conditions: List[Condition]):
+        logging.info("Delete register in table: {}.".format(cls.get_name()))
         try:
             dialect = cls.__db__.url.dialect
             sql = cls.__delete(cls.get_name(), conditions, str(dialect))
+            logging.info("SQL Executed: {}".format(sql))
             await cls.__db__.execute(sql)
         except Exception as ex:
-            print('DELETE ERROR: {ex}'.format(ex=ex))
+            logging.error("Delete Error: ", ex)
+            Exception('DELETE ERROR: {ex}'.format(ex=ex))
