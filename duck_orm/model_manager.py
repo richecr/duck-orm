@@ -1,5 +1,7 @@
+import logging
+
 from typing import Dict, List
-from .model import Model
+from duck_orm.model import Model
 
 
 class ModelManager:
@@ -19,10 +21,13 @@ class ModelManager:
             return table_obj['tablename']
 
     async def create_all_tables(self, models_db: List = []):
+        logging.info("Starts creating all tables in the database.")
         if len(self.models) > 0:
-            for _, model in self.models.items():
+            for name, model in self.models.items():
+                logging.info("Create table {}!".format(name))
                 await model.create()
 
+            logging.info("Creation of table associations in the database.")
             models_db = list(
                 map(lambda model: self.__get_table_name(model), models_db))
             for name, model in self.models.items():
@@ -31,10 +36,12 @@ class ModelManager:
                 else:
                     model.relationships()
         else:
+            logging.error("No models found")
             Exception(
                 "No models found: I created your models and put the " +
                 "model_manager attribute on them.")
 
     async def drop_all_tables(self):
+        logging.info("Delete all tables in the database.")
         for _, model in self.models.items():
             await model.drop_table(cascade=True)
