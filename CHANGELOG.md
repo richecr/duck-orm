@@ -5,7 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.0.1] - 11-06-2021: Not Released
+## [1.0.2] - 21-08-2022: Not Released
+
+### Added
+- Added logs in methods using the lib `logging`.
+
+### Corretion
+- Method `associations` now ignores fields that are not of type `ForeingKey` or `OneToOne`.
+
+
+## [1.0.1] - 11-06-2021: Released
 
 ### Added
 - Added `__tablename__` attribute of models in ModelManager.
