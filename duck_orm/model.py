@@ -1,7 +1,7 @@
-from typing import Any, Dict, List, Tuple, Type, TypeVar
-from databases import Database
 import inspect
-import logging
+import picologging as logging
+from databases import Database
+from typing import Any, Dict, List, Tuple, Type, TypeVar
 
 from duck_orm.utils.functions import get_dialect
 from duck_orm.exceptions import IdInvalidException, UpdateException

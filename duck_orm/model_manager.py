@@ -1,4 +1,4 @@
-import logging
+import picologging as logging
 
 from typing import Dict, List
 from duck_orm.model import Model
