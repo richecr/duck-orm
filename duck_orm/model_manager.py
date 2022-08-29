@@ -1,12 +1,26 @@
 import picologging as logging
-
 from typing import Dict, List
+from databases.core import Database
+
 from duck_orm.model import Model
+from duck_orm.sql import fields as fields_type
+from duck_orm.utils.functions import get_dialect
 
 
-class ModelManager:
+class Singleton(object):
+    _instances = {}
+
+    def __new__(class_, *args, **kwargs):
+        if class_ not in class_._instances:
+            class_._instances[class_] = super(
+                Singleton, class_).__new__(class_, *args, **kwargs)
+        return class_._instances[class_]
+
+
+class ModelManager(Singleton):
     def __init__(self) -> None:
         self.models: Dict[str, Model] = {}
+        self.db_connection: Database = None
 
     def add_model(self, name: str, model: Model):
         self.models[name] = model
@@ -45,3 +59,57 @@ class ModelManager:
         logging.info("Delete all tables in the database.")
         for _, model in self.models.items():
             await model.drop_table(cascade=True)
+
+    def get_database(self):
+        from importlib.machinery import SourceFileLoader
+        file = SourceFileLoader(
+            "module.name", './duckorm_file.py').load_module()
+        configs = file.configs
+        dialect = configs['development']['client']
+        database_url = configs['development']['database_url']
+        url = '{}://{}'
+        if dialect == 'sqlite3':
+            url = '{}:///{}'
+        db = Database(url.format(dialect, database_url))
+        self.db_connection = db
+
+    async def create_table(self, name_table, fields):
+        self.get_database()
+        sqls: list[str] = []
+        dialect = self.db_connection.url.dialect
+
+        for name, field in fields.items():
+            if isinstance(field, fields_type.Column):
+                from duck_orm.sql.relationship import ForeignKey, OneToOne
+                sql = ''
+                if (isinstance(field, OneToOne)):
+                    sql = '{} {}, '.format(
+                        name, field.type_fk.type_sql(dialect=dialect))
+                    sql += field.sql_migration(dialect, name)
+                elif isinstance(field, ForeignKey):
+                    field_id = field.model.get_id()[1]
+                    sql_field_fk = field_id.type_sql(dialect)
+                    sql = field.sql(
+                        dialect=dialect, name=name, table_name=name,
+                        type_sql=sql_field_fk)
+                else:
+                    sql = '{} {}'.format(name, field.column_sql(dialect))
+
+                if sql != '':
+                    sqls.append(sql)
+
+        query_executor = get_dialect(str(dialect))
+        sql_ = query_executor.create_sql(name_table, sqls)
+        logging.info("MIGRATION -> SQL Executed: {}".format(sql))
+        await self.db_connection.connect()
+        await self.db_connection.execute(sql_)
+        await self.db_connection.disconnect()
+
+    async def drop_table(self, name):
+        self.get_database()
+        dialect = self.db_connection.url.dialect
+        query_executor = get_dialect(dialect)
+        sql_drop = query_executor.drop_table(name, True)
+        await self.db_connection.connect()
+        await self.db_connection.execute(sql_drop)
+        await self.db_connection.disconnect()

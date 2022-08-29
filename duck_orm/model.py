@@ -21,6 +21,9 @@ class ModelMeta(type):
             except KeyError:
                 name = name.lower()
 
+            if not attrs['model_manager']['db_connection']:
+                attrs['model_manager']['db_connection'] = attrs['__db__']
+
             attrs['model_manager'].add_model(name, model_class)
 
         return model_class

@@ -1,5 +1,5 @@
 example.db
 __pycache__/
-./Main.py
+/Main.py
 .coverage
 .env

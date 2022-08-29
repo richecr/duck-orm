@@ -98,16 +98,22 @@ class OneToOne(Column):
 
     def __init__(
             self,
-            model: Type[Model],
+            model: Type[Model] = None,
             name_constraint: str = "",
             on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
-            on_update: ActionsEnum = ActionsEnum.CASCADE.value
+            on_update: ActionsEnum = ActionsEnum.CASCADE.value,
+            name_model: str = '',
+            name_fk: str = '',
+            type_fk: Column = None,
     ) -> None:
         self.validate_action(on_delete, on_update)
         self.model = model
         self.name_constraint = name_constraint
         self.on_delete = on_delete
         self.on_update = on_update
+        self.name_model = name_model
+        self.name_fk = name_fk
+        self.type_fk = type_fk
         super().__init__('OneToOne', primary_key=True)
 
     def create_sql(self, dialect: str, field_name: str, name_table: str):
@@ -142,6 +148,18 @@ class OneToOne(Column):
                 on_delete=self.on_delete, on_update=self.on_update,
                 name_constraint=self.name_constraint)
 
+        return sql
+
+    def sql_migration(
+        self,
+        dialect: str,
+        field_name: str,
+    ) -> str:
+        generator_sql = get_dialect(dialect)
+        sql = generator_sql.add_foreing_key_column(
+            name=field_name, table_name=self.name_model, field=self.name_fk,
+            on_delete=self.on_delete, on_update=self.on_update,
+            name_constraint=self.name_constraint)
         return sql
 
 
