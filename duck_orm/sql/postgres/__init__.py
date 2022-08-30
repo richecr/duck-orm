@@ -1,4 +1,3 @@
-from typing import List, Mapping
 from duck_orm.sql.sql import QueryExecutor
 
 SELECT_TABLES_SQL = "SELECT tablename " + \
@@ -18,5 +17,5 @@ TYPES_SQL = {
 
 class QueryPostgres(QueryExecutor):
     @classmethod
-    def select_tables_sql(cls, name_table: str):
+    def select_tables_sql(cls):
         return SELECT_TABLES_SQL

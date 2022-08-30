@@ -144,7 +144,7 @@ class QueryExecutor:
         return ADD_FK_COLUMN_SQL.format(**args)
 
     @classmethod
-    def select_tables_sql(cls, name_table: str):
+    def select_tables_sql(cls):
         return SELECT_TABLES_SQL
 
     @classmethod

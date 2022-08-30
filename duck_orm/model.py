@@ -266,7 +266,7 @@ class Model(metaclass=ModelMeta):
     async def find_all_tables(cls):
         logging.info("Find all tables.")
         query_executor = get_dialect(str(cls.__db__.url.dialect))
-        sql = query_executor.select_tables_sql(cls.get_name())
+        sql = query_executor.select_tables_sql()
         logging.info("SQL Executed: {}".format(sql))
         data = await cls.__db__.fetch_all(sql)
         result: List = []
