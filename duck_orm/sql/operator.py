@@ -21,4 +21,4 @@ class Operator:
             self.operator = 'IN'
         else:
             raise OperatorException(
-                "Operator: {op} is invalid.".format(op=operator))
+                'Operator: {op} is invalid.'.format(op=operator))

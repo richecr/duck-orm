@@ -42,8 +42,7 @@ class ModelManager(Singleton):
                 await model.create()
 
             logging.info("Creation of table associations in the database.")
-            models_db = list(
-                map(lambda model: self.__get_table_name(model), models_db))
+            models_db = list(map(lambda model: self.__get_table_name(model), models_db))
             for name, model in self.models.items():
                 if name not in models_db:
                     await model.associations()
@@ -62,11 +61,9 @@ class ModelManager(Singleton):
 
     def get_database(self):
         from importlib.machinery import SourceFileLoader
-        file = SourceFileLoader(
-            "module.name", './duckorm_file.py').load_module()
-        configs = file.configs
-        dialect = configs['development']['client']
-        database_url = configs['development']['database_url']
+        file = SourceFileLoader("module.name", './duckorm_file.py').load_module()
+        dialect = file.configs['development']['client']
+        database_url = file.configs['development']['database_url']
         url = '{}://{}'
         if dialect == 'sqlite3':
             url = '{}:///{}'
@@ -83,15 +80,13 @@ class ModelManager(Singleton):
                 from duck_orm.sql.relationship import ForeignKey, OneToOne
                 sql = ''
                 if (isinstance(field, OneToOne)):
-                    sql = '{} {}, '.format(
-                        name, field.type_fk.type_sql(dialect=dialect))
+                    sql = '{} {}, '.format(name, field.type_fk.type_sql(dialect=dialect))
                     sql += field.sql_migration(dialect, name)
                 elif isinstance(field, ForeignKey):
                     field_id = field.model.get_id()[1]
                     sql_field_fk = field_id.type_sql(dialect)
                     sql = field.sql(
-                        dialect=dialect, name=name, table_name=name,
-                        type_sql=sql_field_fk)
+                        dialect=dialect, name=name, table_name=name, type_sql=sql_field_fk)
                 else:
                     sql = '{} {}'.format(name, field.column_sql(dialect))
 

@@ -7,11 +7,11 @@ from duck_orm.sql.postgres import TYPES_SQL as TYPES_SQL_POSTGRES
 
 
 class ActionsEnum(Enum):
-    NO_ACTION = "NO ACTION"
-    RESTRICT = "RESTRICT"
-    CASCADE = "CASCADE"
-    SET_DEFAULT = "SET DEFAULT"
-    SET_NULL = "SET NULL"
+    NO_ACTION = 'NO ACTION'
+    RESTRICT = 'RESTRICT'
+    CASCADE = 'CASCADE'
+    SET_DEFAULT = 'SET DEFAULT'
+    SET_NULL = 'SET NULL'
 
     @classmethod
     def has_value(cls, value):
@@ -37,15 +37,15 @@ class Column:
         column_sql = self.get_dialect(dialect)[self.type]
 
         if (self.auto_increment and dialect == 'postgresql'):
-            column_sql = "SERIAL"
+            column_sql = 'SERIAL'
         if (self.primary_key):
-            column_sql += " PRIMARY KEY"
+            column_sql += ' PRIMARY KEY'
         if (self.auto_increment and dialect != 'postgresql'):
-            column_sql += " AUTOINCREMENT"
+            column_sql += ' AUTOINCREMENT'
         if (self.not_null):
-            column_sql += " NOT NULL"
+            column_sql += ' NOT NULL'
         if (self.unique):
-            column_sql += " UNIQUE"
+            column_sql += ' UNIQUE'
         if (self.default_value):
             column_sql += f" DEFAULT '{self.default_value}'"
 
@@ -61,23 +61,24 @@ class Column:
 
     def validate_action(self, on_delete: str, on_update: str):
         if not ActionsEnum.has_value(on_delete):
-            message = "ON DELETE with action {on_delete} is invalid"
-            raise Exception(message.format(on_delete=on_delete))
+            raise Exception('ON DELETE with action {on_delete} is invalid'.format(on_delete=on_delete))
 
         if not ActionsEnum.has_value(on_update):
-            message = "ON UPDATE with action {on_update} is invalid"
-            raise Exception(message.format(on_update=on_update))
+            raise Exception('ON UPDATE with action {on_update} is invalid'.format(on_update=on_update))
 
 
 class String(Column, str):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, unique: bool = False,
-                 primary_key: bool = False, not_null: bool = False,
-                 default_value=None):
-        super().__init__(
-            'str', unique, primary_key, not_null, default_value=default_value)
+    def __init__(
+            self,
+            unique: bool = False,
+            primary_key: bool = False,
+            not_null: bool = False,
+            default_value=None
+    ):
+        super().__init__('str', unique, primary_key, not_null, default_value=default_value)
 
 
 class Integer(Column, int):
@@ -100,21 +101,17 @@ class BigInteger(Column, int):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, unique: bool = False, primary_key: bool = False,
-                 default_value=None):
-        super().__init__(
-            'bigint', unique, primary_key, default_value=default_value)
+    def __init__(self, unique: bool = False, primary_key: bool = False, default_value=None):
+        super().__init__('bigint', unique, primary_key, default_value=default_value)
 
 
 class Varchar(Column, str):
     def __new__(cls, **kwargs):
         return super().__new__(cls, kwargs)
 
-    def __init__(self, length: int, unique: bool = False,
-                 primary_key: bool = False, default_value=None):
+    def __init__(self, length: int, unique: bool = False, primary_key: bool = False, default_value=None):
         self.length = length
-        super().__init__(
-            'varchar', unique, primary_key, default_value=default_value)
+        super().__init__('varchar', unique, primary_key, default_value=default_value)
 
     def column_sql(self, dialect: str):
         column_sql = super().column_sql(dialect)
@@ -126,8 +123,7 @@ class Boolean(Column):
         return super().__new__(cls)
 
     def __init__(self, not_null: bool = False, default_value=None):
-        super().__init__(
-            'boolean', not_null=not_null, default_value=default_value)
+        super().__init__('boolean', not_null=not_null, default_value=default_value)
 
 
 class Timestamp(Column, datetime):
