@@ -3,42 +3,11 @@ import typer
 import shutil
 from datetime import datetime
 from asyncio import run as aiorun
-from databases.core import Database
 
-from duck_orm.model import Model
-from duck_orm.model_manager import ModelManager
-from duck_orm.sql import fields as Field
 from duck_orm.sql.condition import Condition
 from duck_orm.utils.functions import log_info, log_error
 
 app = typer.Typer()
-model_manager = ModelManager()
-
-
-def get_database():
-    from importlib.machinery import SourceFileLoader
-    file = SourceFileLoader('module.name', './duckorm_file.py').load_module()
-    configs = file.configs
-    dialect = configs['development']['client']
-    database_url = configs['development']['database_url']
-    url = '{}://{}'
-    if dialect == 'sqlite3':
-        url = '{}:///{}'
-    db = Database(url.format(dialect, database_url))
-    return db
-
-
-db_connection = get_database()
-
-
-class DuckORMMigrations(Model):
-    __tablename__ = 'duckorm_migrations'
-    __db__ = db_connection
-    model_manager = model_manager
-
-    id: int = Field.Integer(primary_key=True, auto_increment=True)
-    name: str = Field.String()
-    migration_time: datetime = Field.Timestamp()
 
 
 @app.command()
@@ -101,6 +70,8 @@ async def down(model_manager: ModelManager):
 
 @app.command()
 def run_migrations():
+    from model_migration import model_manager, DuckORMMigrations, db_connection
+
     async def _create_table_migrations():
         await db_connection.connect()
         tables = await DuckORMMigrations.find_all_tables()
@@ -131,13 +102,11 @@ def run_migrations():
                 from importlib.machinery import SourceFileLoader
                 file = SourceFileLoader('module.name', migration).load_module()
                 await file.up(model_manager)
-                duck_migration = DuckORMMigrations(
-                    name=name_migration, migration_time=datetime.now())
-                await DuckORMMigrations.save(duck_migration)
+                await DuckORMMigrations.save(
+                    DuckORMMigrations(name=name_migration, migration_time=datetime.now())
+                )
             await db_connection.disconnect()
-
             log_info('Migration {} performed successfully.'.format(name_migration))
-
             if os.path.exists('./migrations/__pycache__'):
                 shutil.rmtree('./migrations/__pycache__')
 
@@ -146,33 +115,28 @@ def run_migrations():
 
 
 @app.command()
-def undo_migrations():
-    def get_name_to_migration(path_migration: str):
-        return path_migration.split('migrations/')[-1]
-
+def undo_migrations_all():
     async def _undo_migrations():
+        from model_migration import model_manager, DuckORMMigrations, db_connection
         dir = './migrations/'
         directory = os.listdir(dir)
-        migrations = reversed([os.path.join(dir, nome) for nome in directory])
-        model_manager = ModelManager()
+        await db_connection.connect()
+        migrations_tables = await DuckORMMigrations.find_all()
+        await db_connection.disconnect()
 
-        for migration in migrations:
-            name_migration = get_name_to_migration(migration)
-            conditions = [Condition('name', '=', name_migration)]
-            await db_connection.connect()
-            has_duck_migration = await DuckORMMigrations.find_one(conditions=conditions)
-            if has_duck_migration is not None:
-                from importlib.machinery import SourceFileLoader
-                file = SourceFileLoader('module.name', migration).load_module()
-                await file.down(model_manager)
-                await DuckORMMigrations.delete(conditions=conditions)
-            await db_connection.disconnect()
-
-            log_info('Undo Migration {} performed successfully.'.format(
-                name_migration))
-
+        migration_names: list[str] = []
+        for migration in migrations_tables:
+            from importlib.machinery import SourceFileLoader
+            file = SourceFileLoader('module.name', directory + migration.name).load_module()
+            await file.down(model_manager)
+            migration_names.append(migration.name)
+            log_info('Undo Migration {} performed successfully.'.format(migration.name))
             if os.path.exists('./migrations/__pycache__'):
                 shutil.rmtree('./migrations/__pycache__')
+
+        await db_connection.connect()
+        await DuckORMMigrations.delete(conditions=[Condition('name', 'IN', migration_names)])
+        await db_connection.disconnect()
 
     aiorun(_undo_migrations())
 
