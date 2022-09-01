@@ -7,17 +7,7 @@ from duck_orm.sql import fields as fields_type
 from duck_orm.utils.functions import get_dialect
 
 
-class Singleton(object):
-    _instances = {}
-
-    def __new__(class_, *args, **kwargs):
-        if class_ not in class_._instances:
-            class_._instances[class_] = super(
-                Singleton, class_).__new__(class_, *args, **kwargs)
-        return class_._instances[class_]
-
-
-class ModelManager(Singleton):
+class ModelManager:
     def __init__(self) -> None:
         self.models: Dict[str, Model] = {}
         self.db_connection: Database = None

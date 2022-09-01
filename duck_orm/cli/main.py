@@ -33,7 +33,7 @@ db_connection = get_database()
 
 class DuckORMMigrations(Model):
     __tablename__ = 'duckorm_migrations'
-    __db__: Database = db_connection
+    __db__ = db_connection
     model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
