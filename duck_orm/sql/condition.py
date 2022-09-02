@@ -19,9 +19,8 @@ class Condition:
             value = self._value
         elif (isinstance(self._value, List)):
             if (self._operator.operator != 'IN'):
-                msg = 'If the type of the value is List, then the operator must be IN'
-                raise OperatorException(msg)
-            value = self._value
+                raise OperatorException('If the type of the value is List, then the operator must be IN')
+            value = "(" + ', '.join(list(map(lambda x: "'{}'".format(x), self._value))) + ")"
         else:
             raise OperatorException('Value type is not supported')
 
