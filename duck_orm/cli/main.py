@@ -4,8 +4,7 @@ import shutil
 from datetime import datetime
 from asyncio import run as aiorun
 
-from duck_orm.sql.condition import Condition
-from duck_orm.utils.functions import log_info, log_error
+from duck_orm.utils.functions import load_migration, log_info, log_error
 
 app = typer.Typer()
 
@@ -70,19 +69,8 @@ async def down(model_manager: ModelManager):
 
 @app.command()
 def run_migrations():
-    from model_migration import model_manager, DuckORMMigrations, db_connection
-
-    async def _create_table_migrations():
-        await db_connection.connect()
-        tables = await DuckORMMigrations.find_all_tables()
-        has_tb_migrations = False
-        for table in tables:
-            if list(table.values())[0] == 'duckorm_migrations':
-                has_tb_migrations = True
-
-        if not has_tb_migrations:
-            await DuckORMMigrations.create()
-        await db_connection.disconnect()
+    from model_migration import (
+        has_migration_executed, save_migration, create_table_migration, execute_up_migration)
 
     def get_name_to_migration(path_migration: str):
         return path_migration.split('migrations/')[-1]
@@ -94,49 +82,37 @@ def run_migrations():
 
         for migration in migrations:
             name_migration = get_name_to_migration(migration)
-            await db_connection.connect()
-            has_duck_migration = await DuckORMMigrations.find_one(conditions=[
-                Condition('name', '=', name_migration)]
-            )
-            if has_duck_migration is None:
-                from importlib.machinery import SourceFileLoader
-                file = SourceFileLoader('module.name', migration).load_module()
-                await file.up(model_manager)
-                await DuckORMMigrations.save(
-                    DuckORMMigrations(name=name_migration, migration_time=datetime.now())
-                )
-            await db_connection.disconnect()
+            if await has_migration_executed(name_migration):
+                file = load_migration(migration)
+                await execute_up_migration(file)
+                await save_migration(name_migration)
+
             log_info('Migration {} performed successfully.'.format(name_migration))
             if os.path.exists('./migrations/__pycache__'):
                 shutil.rmtree('./migrations/__pycache__')
 
-    aiorun(_create_table_migrations())
+    aiorun(create_table_migration())
     aiorun(_run_migrations())
 
 
 @app.command()
 def undo_migrations_all():
     async def _undo_migrations():
-        from model_migration import model_manager, DuckORMMigrations, db_connection
-        dir = './migrations/'
-        directory = os.listdir(dir)
-        await db_connection.connect()
-        migrations_tables = await DuckORMMigrations.find_all()
-        await db_connection.disconnect()
+        from model_migration import (
+            execute_down_migration, find_all_migrations, delete_migrations)
 
+        dir = './migrations/'
+        migrations_tables = await find_all_migrations()
         migration_names: list[str] = []
         for migration in migrations_tables:
-            from importlib.machinery import SourceFileLoader
-            file = SourceFileLoader('module.name', directory + migration.name).load_module()
-            await file.down(model_manager)
+            file = load_migration(dir + migration.name)
+            await execute_down_migration(file)
             migration_names.append(migration.name)
             log_info('Undo Migration {} performed successfully.'.format(migration.name))
             if os.path.exists('./migrations/__pycache__'):
                 shutil.rmtree('./migrations/__pycache__')
 
-        await db_connection.connect()
-        await DuckORMMigrations.delete(conditions=[Condition('name', 'IN', migration_names)])
-        await db_connection.disconnect()
+        await delete_migrations(migration_names)
 
     aiorun(_undo_migrations())
 

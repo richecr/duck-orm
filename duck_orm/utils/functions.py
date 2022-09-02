@@ -14,6 +14,12 @@ def get_dialect(dialect: str) -> QueryExecutor:
     raise Exception("Dialect {} not supported!".format(dialect))
 
 
+def load_migration(dir_migration):
+    from importlib.machinery import SourceFileLoader
+    file = SourceFileLoader('module.name', dir_migration).load_module()
+    return file
+
+
 def log_info(msg):
     print(msg)
     logging.info(msg)
