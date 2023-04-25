@@ -1,4 +1,4 @@
-import picologging as logging
+import logging
 from typing import Dict, List
 from databases.core import Database
 
@@ -28,7 +28,7 @@ class ModelManager:
         logging.info("Starts creating all tables in the database.")
         if len(self.models) > 0:
             for name, model in self.models.items():
-                logging.info("Create table {}!".format(name))
+                logging.info(f"Create table {name}!")
                 await model.create()
 
             logging.info("Creation of table associations in the database.")
@@ -54,9 +54,7 @@ class ModelManager:
         file = SourceFileLoader("module.name", './duckorm_file.py').load_module()
         dialect = file.configs['development']['client']
         database_url = file.configs['development']['database_url']
-        url = '{}://{}'
-        if dialect == 'sqlite3':
-            url = '{}:///{}'
+        url = '{}:///{}' if dialect == 'sqlite3' else '{}://{}'
         db = Database(url.format(dialect, database_url))
         self.db_connection = db
 
@@ -78,14 +76,14 @@ class ModelManager:
                     sql = field.sql(
                         dialect=dialect, name=name, table_name=name, type_sql=sql_field_fk)
                 else:
-                    sql = '{} {}'.format(name, field.column_sql(dialect))
+                    sql = f'{name} {field.column_sql(dialect)}'
 
                 if sql != '':
                     sqls.append(sql)
 
         query_executor = get_dialect(str(dialect))
         sql_ = query_executor.create_sql(name_table, sqls)
-        logging.info("MIGRATION -> SQL Executed: {}".format(sql))
+        logging.info(f"MIGRATION -> SQL Executed: {sql}")
         await self.db_connection.connect()
         await self.db_connection.execute(sql_)
         await self.db_connection.disconnect()

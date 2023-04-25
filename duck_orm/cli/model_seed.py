@@ -21,62 +21,62 @@ model_manager = ModelManager()
 db_connection = get_database()
 
 
-class DuckORMMigrations(Model):
-    __tablename__ = 'duckorm_migrations'
+class DuckORMSeeds(Model):
+    __tablename__ = 'duckorm_seeds'
     __db__ = db_connection
     model_manager = model_manager
 
     id: int = Field.Integer(primary_key=True, auto_increment=True)
     name: str = Field.String()
-    migration_time: datetime = Field.Timestamp()
+    seed_time: datetime = Field.Timestamp()
 
 
-async def create_table_migration():
+async def create_table_seed():
     await db_connection.connect()
-    tables = await DuckORMMigrations.find_all_tables()
-    has_tb_migrations = False
+    tables = await DuckORMSeeds.find_all_tables()
+    has_tb_seeds = False
     for table in tables:
-        if 'duckorm_migrations' in list(table.values()):
-            has_tb_migrations = True
+        if 'duckorm_seeds' in list(table.values()):
+            has_tb_seeds = True
 
-    if not has_tb_migrations:
-        await DuckORMMigrations.create()
+    if not has_tb_seeds:
+        await DuckORMSeeds.create()
     await db_connection.disconnect()
 
 
-async def execute_up_migration(migration):
+async def execute_up_seed(seed):
     await db_connection.connect()
-    await migration.up(model_manager)
+    await seed.up(model_manager)
     await db_connection.disconnect()
 
 
-async def execute_down_migration(migration):
+async def execute_down_seed(seed):
     await db_connection.connect()
-    await migration.down(model_manager)
+    await seed.down(model_manager)
     await db_connection.disconnect()
 
 
-async def has_migration_executed(name_migration):
+async def has_seed_executed(name_seed):
     await db_connection.connect()
-    has_duck_migration = await DuckORMMigrations.find_one(conditions=[Condition('name', '=', name_migration)])
+    has_duck_seed = await DuckORMSeeds.find_one(conditions=[Condition('name', '=', name_seed)])
     await db_connection.disconnect()
-    return has_duck_migration is None
+    return has_duck_seed is None
 
 
-async def save_migration(name_migration):
+async def save_seed(name_seed):
     await db_connection.connect()
-    await DuckORMMigrations.save(DuckORMMigrations(name=name_migration, migration_time=datetime.now()))
+    await DuckORMSeeds.save(DuckORMSeeds(name=name_seed, seed_time=datetime.now()))
     await db_connection.disconnect()
 
 
-async def find_all_migrations():
+async def find_all_seeds():
     await db_connection.connect()
-    migrations_tables = await DuckORMMigrations.find_all()
+    seeds_tables = await DuckORMSeeds.find_all()
     await db_connection.disconnect()
-    return migrations_tables
+    return seeds_tables
 
 
-async def delete_migrations(migration_names: list[str]):
+async def delete_seeds(seed_names: list[str]):
     await db_connection.connect()
-    await DuckORMMigrations.delete(conditions=[Condition('name', 'IN', migration_names)])
+    await DuckORMSeeds.delete(conditions=[Condition('name', 'IN', seed_names)])
     await db_connection.disconnect()

@@ -1,5 +1,5 @@
 import inspect
-import picologging as logging
+import logging
 from databases import Database
 from typing import Any, Dict, List, Tuple, Type, TypeVar
 
@@ -84,19 +84,17 @@ class Model(metaclass=ModelMeta):
                     sqls.append(sql)
 
         for sql in sqls:
-            logging.info('SQL Executed: {}'.format(sql))
+            logging.info(f'SQL Executed: {sql}')
+            print(sql)
             await cls.__db__.execute(sql)
 
     @ classmethod
     def get_name(cls):
-        if cls.__tablename__ == '':
-            return cls.__name__.lower()
-        return cls.__tablename__
+        return cls.__name__.lower() if cls.__tablename__ == '' else cls.__tablename__
 
     @ classmethod
     def __get_create_sql(cls):
         fields: List[Tuple[str, str]] = []
-        sql_unique_fields = []
         dialect = cls.__db__.url.dialect
 
         for name, field in inspect.getmembers(cls):
@@ -105,12 +103,16 @@ class Model(metaclass=ModelMeta):
                 if (isinstance(field, OneToOne)):
                     field_id = field.model.get_id()[1]
                     table_name = field.model.get_name()
-                    fields.append((name, field_id.column_sql(dialect)))
-                    fields.append(('', field.create_sql(dialect, name, table_name)))
+                    fields.extend(
+                        (
+                            (name, field_id.column_sql(dialect)),
+                            ('', field.create_sql(dialect, name, table_name)),
+                        )
+                    )
                 else:
                     fields.insert(0, (name, field.column_sql(dialect)))
 
-        if sql_unique_fields:
+        if sql_unique_fields := []:
             sql = 'UNIQUE(' + ', '.join(sql_unique_fields) + ')'
             fields.append(('', sql))
 
@@ -121,7 +123,8 @@ class Model(metaclass=ModelMeta):
     @ classmethod
     async def create(cls):
         sql = cls.__get_create_sql()
-        logging.info('SQL Executed: {}'.format(sql))
+        logging.info(f'SQL Executed: {sql}')
+        print(sql)
         return await cls.__db__.execute(sql)
 
     @ classmethod
@@ -137,9 +140,8 @@ class Model(metaclass=ModelMeta):
     @ classmethod
     def get_id(cls):
         for name, field in inspect.getmembers(cls):
-            if isinstance(field, fields_type.Column):
-                if (field.primary_key):
-                    return name, field
+            if isinstance(field, fields_type.Column) and field.primary_key:
+                return name, field
         raise IdInvalidException('Model has no primary key!')
 
     @ classmethod
@@ -150,13 +152,13 @@ class Model(metaclass=ModelMeta):
             conditions: List[Condition] = [],
             limit: int = None
     ) -> tuple[str, list[str]]:
-        if fields_includes == []:
+        if not fields_includes:
             fields_includes = cls.__get_fields_all()
         fields_includes = list(set(fields_includes) - set(fields_excludes))
 
         query_executor = get_dialect(str(cls.__db__.url.dialect))
         conditions_str = '1 = 1'
-        if len(conditions) > 0:
+        if conditions:
             conditions_str = ' and '.join(map(lambda condition: condition.get_condition(), conditions))
 
         sql = query_executor.select_sql(cls.get_name(), fields_includes, conditions_str, limit)
@@ -192,9 +194,9 @@ class Model(metaclass=ModelMeta):
         conditions: List[Condition] = [],
         limit: int = None
     ):
-        logging.info('Find all in table: {}'.format(cls.get_name()))
+        logging.info(f'Find all in table: {cls.get_name()}')
         sql, fields_includes = cls.__get_select_sql(fields_includes, fields_excludes, conditions, limit=limit)
-        logging.info('SQL Executed: {}'.format(sql))
+        logging.info(f'SQL Executed: {sql}')
         data = await cls.__db__.fetch_all(sql)
         result: List[cls] = []
         dialect = get_dialect(str(cls.__db__.url.dialect))
@@ -214,9 +216,9 @@ class Model(metaclass=ModelMeta):
         fields_excludes: List[str] = [],
         conditions: List[Condition] = []
     ):
-        logging.info('Find one in table: {}'.format(cls.get_name()))
+        logging.info(f'Find one in table: {cls.get_name()}')
         sql, fields_includes = cls.__get_select_sql(fields_includes, fields_excludes, conditions, limit=1)
-        logging.info('SQL Executed: {}'.format(sql))
+        logging.info(f'SQL Executed: {sql}')
         data = await cls.__db__.fetch_one(sql)
         dialect = get_dialect(str(cls.__db__.url.dialect))
         result: cls = None
@@ -235,20 +237,21 @@ class Model(metaclass=ModelMeta):
         fields_includes: List[str] = [],
         fields_excludes: List[str] = []
     ) -> Type[T]:
-        logging.info('Find by id in table: {}'.format(cls.get_name()))
+        logging.info(f'Find by id in table: {cls.get_name()}')
         name = cls.get_id()[0]
         condition = Condition(name, '=', id)
-        result = await cls.find_one(
+        return await cls.find_one(
             fields_includes=fields_includes, fields_excludes=fields_excludes, conditions=[condition])
-        return result
 
     @ classmethod
     async def find_all_tables(cls):
         logging.info('Find all tables.')
         query_executor = get_dialect(str(cls.__db__.url.dialect))
         sql = query_executor.select_tables_sql()
-        logging.info('SQL Executed: {}'.format(sql))
+        logging.info(f'SQL Executed: {sql}')
+        print(sql)
         data = await cls.__db__.fetch_all(sql)
+        print(data)
         result: List = []
         logging.info('Parsing fields of result.')
         for row in data:
@@ -280,19 +283,18 @@ class Model(metaclass=ModelMeta):
     def __get_sql_last_inserted_id(cls):
         name, _ = cls.get_id()
         query_executor = get_dialect(str(cls.__db__.url.dialect))
-        sql = query_executor.select_last_id(name, cls.get_name())
-        return sql
+        return query_executor.select_last_id(name, cls.get_name())
 
     async def __get_last_insert_id(self):
         sql = self.__get_sql_last_inserted_id()
-        logging.info('SQL Executed: {}'.format(sql))
+        logging.info(f'SQL Executed: {sql}')
         return await self.__db__.fetch_one(sql)
 
     @ classmethod
     async def save(cls, model: T):
-        logging.info('Save data in table: {}.'.format(cls.get_name()))
+        logging.info(f'Save data in table: {cls.get_name()}.')
         sql, values = model.__get_insert_sql()
-        logging.info('SQL Executed: {}'.format(sql))
+        logging.info(f'SQL Executed: {sql}')
         await cls.__db__.execute(query=sql, values=values)
         data = await model.__get_last_insert_id()
         name, field = cls.get_id()
@@ -315,9 +317,9 @@ class Model(metaclass=ModelMeta):
         field_id = self[field_name_id]
 
         if field_id is None:
-            raise UpdateException('Updating by ID requires that the object {} has an ID field'.format(self))
+            raise UpdateException(f'Updating by ID requires that the object {self} has an ID field')
 
-        condition = ['{} = {}'.format(field_name_id, field_id)]
+        condition = [f'{field_name_id} = {field_id}']
         query_executor = get_dialect(str(self.__db__.url.dialect))
         sql = query_executor.update_sql(self.get_name(), fields, conditions=condition)
 
@@ -326,7 +328,7 @@ class Model(metaclass=ModelMeta):
     async def update(self, **kwargs):
         fields = []
         values = {}
-        logging.info('Update register in table: {}.'.format(self.get_name()))
+        logging.info(f'Update register in table: {self.get_name()}.')
         for name, value in kwargs.items():
             if isinstance(value, Model):
                 name_id_fk = value.get_id()[0]
@@ -337,7 +339,7 @@ class Model(metaclass=ModelMeta):
             values[name] = value
 
         sql, field_name_id, field_id = self.__update_sql(fields)
-        logging.info('SQL Executed: {}'.format(sql))
+        logging.info('SQL Executed: {sql}')
         await self.__db__.execute(query=sql, values=values)
         condition_with_id = Condition(field_name_id, '=', field_id)
         return await self.find_one(conditions=[condition_with_id])
@@ -349,9 +351,9 @@ class Model(metaclass=ModelMeta):
 
     @ classmethod
     async def drop_table(cls, cascade: bool = False):
-        logging.info('Drop table: {}.'.format(cls.get_name()))
+        logging.info(f'Drop table: {cls.get_name()}.')
         sql = cls.__drop_table(str(cls.__db__.url.dialect), cls.get_name(), cascade)
-        logging.info('SQL Executed: {}'.format(sql))
+        logging.info(f'Delete register in table: {cls.get_name()}.')
         await cls.__db__.execute(sql)
 
     @ classmethod
@@ -362,11 +364,11 @@ class Model(metaclass=ModelMeta):
 
     @ classmethod
     async def delete(cls, conditions: List[Condition]):
-        logging.info('Delete register in table: {}.'.format(cls.get_name()))
+        logging.info(f'Delete register in table: {cls.get_name()}.')
         try:
             dialect = cls.__db__.url.dialect
             sql = cls.__delete(cls.get_name(), conditions, str(dialect))
-            logging.info('SQL Executed: {}'.format(sql))
+            logging.info(f'SQL Executed: {sql}')
             await cls.__db__.execute(sql)
         except Exception as ex:
             logging.error('Delete Error: ', ex)

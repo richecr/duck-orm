@@ -1,4 +1,4 @@
-import picologging as logging
+import logging
 
 from duck_orm.sql.sql import QueryExecutor
 from duck_orm.sql.sqlite import QuerySQLite
@@ -11,13 +11,12 @@ def get_dialect(dialect: str) -> QueryExecutor:
     elif dialect == 'sqlite':
         return QuerySQLite()
 
-    raise Exception("Dialect {} not supported!".format(dialect))
+    raise Exception(f"Dialect {dialect} not supported!")
 
 
-def load_migration(dir_migration):
+def load_path(dir_migration):
     from importlib.machinery import SourceFileLoader
-    file = SourceFileLoader('module.name', dir_migration).load_module()
-    return file
+    return SourceFileLoader('module.name', dir_migration).load_module()
 
 
 def log_info(msg):
