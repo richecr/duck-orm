@@ -85,7 +85,6 @@ class Model(metaclass=ModelMeta):
 
         for sql in sqls:
             logging.info(f'SQL Executed: {sql}')
-            print(sql)
             await cls.__db__.execute(sql)
 
     @ classmethod
@@ -124,7 +123,6 @@ class Model(metaclass=ModelMeta):
     async def create(cls):
         sql = cls.__get_create_sql()
         logging.info(f'SQL Executed: {sql}')
-        print(sql)
         return await cls.__db__.execute(sql)
 
     @ classmethod
@@ -249,9 +247,7 @@ class Model(metaclass=ModelMeta):
         query_executor = get_dialect(str(cls.__db__.url.dialect))
         sql = query_executor.select_tables_sql()
         logging.info(f'SQL Executed: {sql}')
-        print(sql)
         data = await cls.__db__.fetch_all(sql)
-        print(data)
         result: List = []
         logging.info('Parsing fields of result.')
         for row in data:

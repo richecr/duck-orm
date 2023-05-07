@@ -5,7 +5,10 @@ local/install:
 	poetry install
 
 local/test:
-	pytest .
+	pytest . --cov=duck_orm tests/ --cov-report html
+
+local/build:
+	poetry build
 
 docker/up:
 	docker-compose up -d

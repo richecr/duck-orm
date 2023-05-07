@@ -7,3 +7,5 @@ data
 /migrations
 /seeds
 duckorm_file.py
+/htmlcov
+/dist

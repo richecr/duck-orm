@@ -107,7 +107,6 @@ async def test_create_table():
     await db.connect()
     await model_manager.create_all_tables()
     t = await db.fetch_all("SELECT name FROM sqlite_master where type = 'table';")
-    print(t)
     tables = await Person.find_all_tables()
     assert get_table('persons', tables)
     assert get_table('mytest', tables)
@@ -250,7 +249,6 @@ async def test_update_sql():
     person = await Person.find_one(conditions=[
         Condition('first_name', '=', 'Teste 1')
     ])
-    print(person)
     assert person.first_name == 'Teste 1'
     p = await person.update(first_name='Teste 1 UPDATE', last_name='UPDATE')
     assert p.id == 3
