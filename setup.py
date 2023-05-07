@@ -7,9 +7,7 @@ with open("README.md", "r") as fh:
 
 
 with open("./requirements.txt", "r") as f:
-    requirements = []
-    for line in f:
-        requirements.append(line.strip())
+    requirements = [line.strip() for line in f]
 
 
 def get_version(package):
@@ -17,8 +15,7 @@ def get_version(package):
     Return package version as listed in `__version__` in `init.py`.
     """
     with open(os.path.join(package, "__init__.py")) as f:
-        return re.search("__version__ = ['\"]([^'\"]+)['\"]", f.read())\
-            .group(1)
+        return re.search("__version__ = ['\"]([^'\"]+)['\"]", f.read())[1]
 
 
 def get_packages(package):
@@ -27,7 +24,7 @@ def get_packages(package):
     """
     return [
         dirpath
-        for dirpath, dirnames, filenames in os.walk(package)
+        for dirpath, _, _ in os.walk(package)
         if os.path.exists(os.path.join(dirpath, "__init__.py"))
     ]
 

@@ -70,14 +70,14 @@ async def down(model_manager: ModelManager):
 
 @app.command()
 def run_migrations():
-    from model_migration import (
+    from duck_orm.cli.model_migration import (
         has_migration_executed, save_migration, create_table_migration, execute_up_migration)
 
     def get_name_to_migration(path_migration: str):
         return path_migration.split('migrations/')[-1]
 
     async def _run_migrations():
-        directory = os.listdir(dir)
+        directory = os.listdir('./migrations/')
         migrations = [os.path.join('./migrations/', nome) for nome in directory]
 
         for migration in migrations:
@@ -98,13 +98,13 @@ def run_migrations():
 @app.command()
 def undo_migrations_all():
     async def _undo_migrations():
-        from model_migration import (
+        from duck_orm.cli.model_migration import (
             execute_down_migration, find_all_migrations, delete_migrations)
 
         migrations_tables = await find_all_migrations()
         migration_names: list[str] = []
         for migration in migrations_tables:
-            file = load_path(load_path(f'./migrations/{migration.name}'))
+            file = load_path(f'./migrations/{migration.name}')
             await execute_down_migration(file)
             migration_names.append(migration.name)
             log_info('Undo Migration {} performed successfully.'.format(migration.name))
