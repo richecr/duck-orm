@@ -4,3 +4,6 @@ __pycache__/
 .coverage
 .env
 data
+/migrations
+/seeds
+duckorm_file.py
