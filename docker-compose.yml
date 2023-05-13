@@ -1,0 +1,21 @@
+version: "3.5"
+
+services:
+    postgres:
+        container_name: postgres-dev
+        image: postgres
+        environment:
+            POSTGRES_DB: "dev-duckorm"
+            POSTGRES_USER: "dev-duckorm"
+            POSTGRES_PASSWORD: "postgres123"
+        ports:
+            - "5432:5432"
+
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        volumes:
+            - .:/app
+        depends_on:
+            - postgres

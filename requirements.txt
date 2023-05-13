@@ -1,2 +1,0 @@
-databases>=0.5.3
-sqlalchemy>=1.4.26

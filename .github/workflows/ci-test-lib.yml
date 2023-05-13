@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Python application
+name: Tests
 
 on:
   push:
@@ -40,10 +40,13 @@ jobs:
       run: poetry install --no-interaction --no-root
     - name: Install library
       run: poetry install --no-interaction
+    - name: Set up Docker Compose
+      run: docker-compose up -d
     - name: Run tests
       env:
         DATABASE_TEST_URL: ${{ secrets.DATABASE_TEST_URL }}
       run: |
         source .venv/bin/activate
         pytest .
-    
+    - name: Stop services
+      run: docker-compose down

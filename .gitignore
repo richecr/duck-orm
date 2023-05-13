@@ -1,5 +1,11 @@
 example.db
 __pycache__/
-./Main.py
+/Main.py
 .coverage
 .env
+data
+/migrations
+/seeds
+duckorm_file.py
+/htmlcov
+/dist

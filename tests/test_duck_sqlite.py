@@ -99,16 +99,14 @@ def test_create_sql_son():
 
 
 def get_table(table, tables):
-    for tup in tables:
-        if (tup['name'] == table):
-            return True
-    return False
+    return any((tup['name'] == table) for tup in tables)
 
 
 @async_decorator
 async def test_create_table():
     await db.connect()
     await model_manager.create_all_tables()
+    t = await db.fetch_all("SELECT name FROM sqlite_master where type = 'table';")
     tables = await Person.find_all_tables()
     assert get_table('persons', tables)
     assert get_table('mytest', tables)

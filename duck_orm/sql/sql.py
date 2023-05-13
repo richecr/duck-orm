@@ -5,28 +5,17 @@ SELECT_TABLE_SQL = "SELECT {fields} FROM {table}"
 LIMIT_SQL = " LIMIT {limit}"
 ORDER_BY_SQL = " ORDER BY {name_id} DESC"
 SELECT_TABLE_WHERE_SQL = SELECT_TABLE_SQL + " WHERE {conditions}"
-SELECT_LAST_ID_ORDER_BY_SQL = "SELECT {name_id} FROM {table} " +\
-    ORDER_BY_SQL + " LIMIT 1;"
-
+SELECT_LAST_ID_ORDER_BY_SQL = "SELECT {name_id} FROM {table} " + ORDER_BY_SQL + " LIMIT 1;"
 INSERT_INTO_SQL = "INSERT INTO {table}({fields_name}) VALUES({placeholders});"
 CREATE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"
 UPDATE_SQL = "UPDATE {table} SET {fields_values} WHERE {conditions};"
 DELETE_SQL = "DELETE FROM {table} WHERE {conditions};"
 DROP_TABLE_SQL = "DROP TABLE IF EXISTS {name}"
-
-ADD_COLUMN_SQL = "ALTER TABLE {table_name} " + \
-    "ADD COLUMN {field_name} {field_type} "
-
-ADD_FK_SQL = "REFERENCES {table_relation} ({field}) " + \
-    "ON DELETE {on_delete} ON UPDATE {on_update}"
-
+ADD_COLUMN_SQL = "ALTER TABLE {table_name} ADD COLUMN {field_name} {field_type} "
+ADD_FK_SQL = "REFERENCES {table_relation} ({field}) ON DELETE {on_delete} ON UPDATE {on_update}"
 ADD_FK_COLUMN_SQL = "FOREIGN KEY ({name}) " + ADD_FK_SQL
-
-ADD_FK_WITH_CONSTRAINT_WITHOUT_ALTER_SQL = "CONSTRAINT {name_constraint} " + \
-    ADD_FK_COLUMN_SQL
-
+ADD_FK_WITH_CONSTRAINT_WITHOUT_ALTER_SQL = "CONSTRAINT {name_constraint} " + ADD_FK_COLUMN_SQL
 ADD_FK_WITH_CONSTRAINT_SQL = "CONSTRAINT {name_constraint} " + ADD_FK_SQL
-
 ADD_COLUMN_FK_WITH_CONSTRAINT_SQL = ADD_COLUMN_SQL + ADD_FK_WITH_CONSTRAINT_SQL
 ADD_COLUMN_FK_SQL = ADD_COLUMN_SQL + ADD_FK_SQL
 
@@ -37,45 +26,22 @@ class QueryExecutor:
         return CREATE_SQL.format(name=name_table, fields=", ".join(fields))
 
     @classmethod
-    def insert_sql(
-            cls,
-            name_table: str,
-            fields_name: List[str],
-            placeholders: List[str]
-    ):
-        return INSERT_INTO_SQL.format(table=name_table,
-                                      fields_name=", ".join(fields_name),
-                                      placeholders=", ".join(placeholders))
+    def insert_sql(cls, name_table: str, fields_name: List[str], placeholders: List[str]):
+        return INSERT_INTO_SQL.format(
+            table=name_table, fields_name=", ".join(fields_name), placeholders=", ".join(placeholders))
 
     @classmethod
-    def update_sql(
-            cls,
-            name_table: str,
-            fields_values: List[str],
-            conditions: List[str]
-    ):
-        return UPDATE_SQL.format(table=name_table,
-                                 fields_values=", ".join(fields_values),
-                                 conditions=", ".join(conditions))
+    def update_sql(cls, name_table: str, fields_values: List[str], conditions: List[str]):
+        return UPDATE_SQL.format(
+            table=name_table, fields_values=", ".join(fields_values), conditions=", ".join(conditions))
 
     @classmethod
-    def select_sql(
-            cls,
-            name_table: str,
-            fields: List[str],
-            conditions: str,
-            limit: int = None
-    ) -> str:
+    def select_sql(cls, name_table: str, fields: List[str], conditions: str, limit: int = None) -> str:
         sql = SELECT_TABLE_WHERE_SQL
         if (limit is not None):
             sql += LIMIT_SQL
 
-        return sql.format(
-            table=name_table,
-            fields=", ".join(fields),
-            conditions=conditions,
-            limit=limit
-        )
+        return sql.format(table=name_table, fields=", ".join(fields), conditions=conditions, limit=limit)
 
     @classmethod
     def select_last_id(cls, name_id: str, table: str):
@@ -90,7 +56,6 @@ class QueryExecutor:
         sql = DROP_TABLE_SQL.format(name=name_table)
         if cascade:
             sql += " CASCADE;"
-
         return sql
 
     @classmethod
@@ -115,9 +80,7 @@ class QueryExecutor:
             "on_update": on_update
         }
         if name_constraint != "":
-            return ADD_COLUMN_FK_WITH_CONSTRAINT_SQL.format(
-                **args, name_constraint=name_constraint)
-
+            return ADD_COLUMN_FK_WITH_CONSTRAINT_SQL.format(**args, name_constraint=name_constraint)
         return ADD_COLUMN_FK_SQL.format(**args)
 
     @classmethod
@@ -138,13 +101,11 @@ class QueryExecutor:
             "on_update": on_update
         }
         if name_constraint != "":
-            return ADD_FK_WITH_CONSTRAINT_WITHOUT_ALTER_SQL.format(
-                **args, name_constraint=name_constraint)
-
+            return ADD_FK_WITH_CONSTRAINT_WITHOUT_ALTER_SQL.format(**args, name_constraint=name_constraint)
         return ADD_FK_COLUMN_SQL.format(**args)
 
     @classmethod
-    def select_tables_sql(cls, name_table: str):
+    def select_tables_sql(cls):
         return SELECT_TABLES_SQL
 
     @classmethod
@@ -172,5 +133,4 @@ class QueryExecutor:
         else:
             for key, value in row.items():
                 entity[key] = value
-
         return entity
