@@ -5,7 +5,7 @@ local/install:
 	poetry install
 
 local/test:
-	pytest . --cov=duck_orm tests/ --cov-report html
+	poetry run pytest . --cov=duck_orm tests/ --cov-report html
 
 local/build:
 	poetry build

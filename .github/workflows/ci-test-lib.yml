@@ -16,13 +16,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          export PATH="$HOME/.poetry/bin:$PATH"
+
+      - name: Install dependencies
+        run: make local/install
+
       - name: Set up Docker Compose
         run: docker-compose up -d
+
+      - name: Wait for services to start
+        run: docker-compose exec -T app sh -c 'until nc -z db 5432; do sleep 1; done'
 
       - name: Run tests
         env:
             DATABASE_TEST_URL: ${{ secrets.DATABASE_TEST_URL }}
-        run: make local/test
+        run: |
+          source $HOME/.poetry/env
+          make local/test
 
       - name: Stop services
         run: docker-compose down
