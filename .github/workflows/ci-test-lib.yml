@@ -13,31 +13,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.9
+    uses: actions/setup-python@v4
+    with:
+        python-version: "3.9"
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
+    - name: Install Poetry
+    uses: snok/install-poetry@v1
+    with:
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+        installer-parallel: true
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          export PATH="$HOME/.poetry/bin:$PATH"
+    - name: Load cached venv
+    id: cached-poetry-dependencies
+    uses: actions/cache@v2
+    with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
-      - name: Install dependencies
-        run: make local/install
+    - name: Install dependencies
+    if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+    run: poetry install --no-interaction --no-root
 
-      - name: Set up Docker Compose
-        run: docker-compose up -d
+    - name: Install library
+    run: poetry install --no-interaction
 
-      - name: Run tests
-        env:
-            DATABASE_TEST_URL: ${{ secrets.DATABASE_TEST_URL }}
-        run: |
-          make local/shell
-          make local/test
+    - name: Set up Docker Compose
+    run: docker-compose up -d
 
-      - name: Stop services
-        run: docker-compose down
+    - name: Run tests
+    env:
+        DATABASE_TEST_URL: ${{ secrets.DATABASE_TEST_URL }}
+    run: |
+        source .venv/bin/activate
+        make local/test
+
+    - name: Stop services
+    run: docker-compose down
