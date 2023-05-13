@@ -40,6 +40,8 @@ jobs:
       run: poetry install --no-interaction --no-root
     - name: Install library
       run: poetry install --no-interaction
+    - name: Adjust permissions
+      run: chmod -R 777 data
     - name: Set up Docker Compose
       run: docker-compose up -d
     - name: Run tests
