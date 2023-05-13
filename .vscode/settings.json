@@ -3,5 +3,9 @@
     "python.linting.pycodestyleEnabled": true,
     "python.linting.enabled": true,
     "discord.detailsEditing": "Criando o novo ORM Python",
-    "discord.largeImage": "Programando em {LANG}"
+    "discord.largeImage": "Programando em {LANG}",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none"
 }

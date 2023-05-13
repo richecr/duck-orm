@@ -5,10 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.0.2] - 21-08-2022: Not Released
+## [1.0.2] - 13-05-2023: Released
 
 ### Added
 - Added logs in methods using the lib `logging`.
+- Added `ModelManager` to manage database tables.
+- Preparing `DuckORM` to support migrations with [`duck-orm-cli`](https://github.com/richecr/duck-orm-cli).
 
 ### Corretion
 - Method `associations` now ignores fields that are not of type `ForeingKey` or `OneToOne`.

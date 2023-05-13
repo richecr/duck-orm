@@ -40,10 +40,12 @@ jobs:
       run: poetry install --no-interaction --no-root
     - name: Install library
       run: poetry install --no-interaction
+    - name: Docker Compose
+      run: make docker/up
     - name: Run tests
       env:
-        DATABASE_TEST_URL: ${{ secrets.DATABASE_TEST_URL }}
+        DATABASE_TEST_URL: dev-duckorm:postgres123@localhost:5432/dev-duckorm
       run: |
         source .venv/bin/activate
-        pytest .
+        make local/test
     

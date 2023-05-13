@@ -4,7 +4,17 @@ version = "1.0.2"
 description = "ORM Async for Python"
 authors = ["Rich <richelton14@gmail.com>"]
 readme = "README.md"
-license = "MIT"
+license = "LICENSE"
+keywords = [
+    "orm",
+    "async",
+    "aiohttp",
+    "asyncio",
+    "databases",
+    "database",
+    "postgres",
+    "sqlite"
+]
 classifiers = [
     "Intended Audience :: Information Technology",
     "Intended Audience :: System Administrators",
@@ -41,15 +51,20 @@ Documentation = "https://richecr.github.io/duck-orm/"
 python = "^3.8"
 python-dotenv = "^0.19.0"
 databases = "^0.7.0"
-picologging = "^0.7.2"
 
 [tool.poetry.dev-dependencies]
 aiosqlite = "^0.17.0"
 asyncpg = "^0.26.0"
 autopep8 = "^1.5.5"
 mkdocs-material = "^7.1.2"
-pytest-cov = "^2.12.1"
-pytest = "^7.1.2"
+pytest-asyncio = "^0.21.0"
+pytest-cov = "^4.0.0"
+pytest = "^7.3.1"
+
+[tool.poetry.extras]
+postgresql = ["asyncpg"]
+postgresql-aiopg = ["aiopg"]
+sqlite = ["aiosqlite"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
