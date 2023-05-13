@@ -40,10 +40,6 @@ jobs:
       run: poetry install --no-interaction --no-root
     - name: Install library
       run: poetry install --no-interaction
-    - name: Create data directory
-      run: mkdir -p data/postgres
-    - name: Set permissions for data directory
-      run: chmod 777 data/postgres
     - name: Set up Docker Compose
       run: docker-compose up -d
     - name: Run tests

@@ -9,7 +9,7 @@ services:
             POSTGRES_USER: "dev-duckorm"
             POSTGRES_PASSWORD: "postgres123"
         volumes:
-            - "./data/postgres:/var/lib/postgresql/data"
+            - "./postgres-data:/var/lib/postgresql/data"
         ports:
             - "5432:5432"
 
