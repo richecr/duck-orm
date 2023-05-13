@@ -33,7 +33,7 @@ jobs:
         run: docker-compose exec -T app sh -c 'until nc -z db 5432; do sleep 1; done'
 
       - name: Run tests
-        run: make test
+        run: make local/test
 
       - name: Stop services
         run: docker-compose down

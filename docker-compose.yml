@@ -17,7 +17,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
-            volumes:
-                - .:/app
-            depends_on:
-                - postgres
+        volumes:
+            - .:/app
+        depends_on:
+            - postgres
