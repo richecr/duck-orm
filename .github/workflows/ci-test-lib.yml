@@ -19,10 +19,9 @@ jobs:
       - name: Set up Docker Compose
         run: docker-compose up -d
 
-      - name: Wait for services to start
-        run: docker-compose exec -T app sh -c 'until nc -z db 5432; do sleep 1; done'
-
       - name: Run tests
+        env:
+            DATABASE_TEST_URL: ${{ secrets.DATABASE_TEST_URL }}
         run: make local/test
 
       - name: Stop services
