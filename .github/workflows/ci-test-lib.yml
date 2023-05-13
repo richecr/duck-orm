@@ -41,7 +41,7 @@ jobs:
     - name: Install library
       run: poetry install --no-interaction
     - name: Set up Docker Compose
-    run: docker-compose up -d
+      run: docker-compose up -d
     - name: Run tests
       env:
         DATABASE_TEST_URL: ${{ secrets.DATABASE_TEST_URL }}
@@ -49,4 +49,4 @@ jobs:
         source .venv/bin/activate
         pytest .
     - name: Stop services
-    run: docker-compose down
+      run: docker-compose down
