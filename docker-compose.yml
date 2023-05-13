@@ -12,3 +12,12 @@ services:
             - "./data/postgres:/var/lib/postgresql/data"
         ports:
             - "5432:5432"
+
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            volumes:
+                - .:/app
+            depends_on:
+                - postgres

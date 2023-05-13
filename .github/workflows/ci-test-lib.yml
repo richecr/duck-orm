@@ -1,51 +1,39 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: Python application
+name: Tests
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
-
-permissions:
-  contents: read
+    branches:
+      - main
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
 
+    services:
+      db:
+        image: postgres
+        env:
+          POSTGRES_USER: dev-duckorm
+          POSTGRES_PASSWORD: postgres123
+          POSTGRES_DB: dev-duckorm
+        ports:
+          - 5432:5432
+
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.9"
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-        installer-parallel: true
-    - name: Load cached venv
-      id: cached-poetry-dependencies
-      uses: actions/cache@v2
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-    - name: Install dependencies
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: poetry install --no-interaction --no-root
-    - name: Install library
-      run: poetry install --no-interaction
-    - name: Docker Compose
-      run: make docker/up
-    - name: Run tests
-      env:
-        DATABASE_TEST_URL: dev-duckorm:postgres123@localhost:5432/dev-duckorm
-      run: |
-        source .venv/bin/activate
-        make local/test
-    
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Compose
+        run: docker-compose up -d
+
+      - name: Wait for services to start
+        run: docker-compose exec -T app sh -c 'until nc -z db 5432; do sleep 1; done'
+
+      - name: Run tests
+        run: make test
+
+      - name: Stop services
+        run: docker-compose down
