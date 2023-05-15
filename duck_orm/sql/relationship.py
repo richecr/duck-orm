@@ -2,9 +2,9 @@ import inspect
 from typing import Any, Dict, List, Type
 
 from duck_orm.model import Model
-from duck_orm.sql.fields import Column, ActionsEnum
 from duck_orm.sql.condition import Condition
 from duck_orm.utils.functions import get_dialect
+from duck_orm.sql.fields import Column, ActionsEnum
 
 
 class ForeignKey(Column):
@@ -12,13 +12,13 @@ class ForeignKey(Column):
         return super().__new__(cls)
 
     def __init__(
-            self,
-            model: Type[Model],
-            name_in_table_fk: str,
-            unique: bool = False,
-            name_constraint: str = '',
-            on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
-            on_update: ActionsEnum = ActionsEnum.CASCADE.value
+        self,
+        model: Type[Model],
+        name_in_table_fk: str,
+        unique: bool = False,
+        name_constraint: str = "",
+        on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
+        on_update: ActionsEnum = ActionsEnum.CASCADE.value,
     ) -> None:
         self.validate_action(on_delete, on_update)
         self.model = model
@@ -27,43 +27,32 @@ class ForeignKey(Column):
         self.on_delete = on_delete
         self.on_update = on_update
         self.name_constraint = name_constraint
-        super().__init__('ForeignKey', unique=unique)
+        super().__init__("ForeignKey", unique=unique)
 
-    def sql(
-        self,
-        dialect: str,
-        name: str,
-        table_name: str,
-        type_sql: str
-    ) -> str:
+    def sql(self, dialect: str, name: str, table_name: str, type_sql: str) -> str:
         generator_sql = get_dialect(dialect)
         args = {
-            'field_name': name,
-            'field_type': type_sql,
-            'table_name': table_name,
-            'on_delete': self.on_delete,
-            'on_update': self.on_update,
-            'field': self.name_in_table_fk,
-            'table_relation': self.model.get_name(),
-            'name_constraint': self.name_constraint,
+            "field_name": name,
+            "field_type": type_sql,
+            "table_name": table_name,
+            "on_delete": self.on_delete,
+            "on_update": self.on_update,
+            "field": self.name_in_table_fk,
+            "table_relation": self.model.get_name(),
+            "name_constraint": self.name_constraint,
         }
-        sql = generator_sql.alter_table_add_column_with_constraint(**args)
-        return sql
+        return generator_sql.alter_table_add_column_with_constraint(**args)
 
 
 class OneToMany(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(
-            self,
-            model: Type[Model],
-            name_in_table_fk: str
-    ) -> None:
+    def __init__(self, model: Type[Model], name_in_table_fk: str) -> None:
         self.model = model
         self.name_in_table_fk = name_in_table_fk
         self.model_: Type[Model] = None
-        super().__init__('OneToMany')
+        super().__init__("OneToMany")
 
     async def add(self, model: Type[Model]):
         if self.model_:
@@ -75,7 +64,7 @@ class OneToMany(Column):
         result: List[Model] = []
         if self.model_:
             field_name = self.model_.get_id()[0]
-            condition = Condition(self.name_in_table_fk, '=', self.model_[field_name])
+            condition = Condition(self.name_in_table_fk, "=", self.model_[field_name])
             result = await self.model.find_all(conditions=[condition])
         else:
             result = await self.model.find_all()
@@ -88,7 +77,7 @@ class ManyToOne(Column):
 
     def __init__(self, model: Type[Model]):
         self.model = model
-        super().__init__('OneToMany')
+        super().__init__("OneToMany")
 
 
 class OneToOne(Column):
@@ -96,14 +85,14 @@ class OneToOne(Column):
         return super().__new__(cls)
 
     def __init__(
-            self,
-            model: Type[Model] = None,
-            name_constraint: str = '',
-            on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
-            on_update: ActionsEnum = ActionsEnum.CASCADE.value,
-            name_model: str = '',
-            name_fk: str = '',
-            type_fk: Column = None,
+        self,
+        model: Type[Model] = None,
+        name_constraint: str = "",
+        on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
+        on_update: ActionsEnum = ActionsEnum.CASCADE.value,
+        name_model: str = "",
+        name_fk: str = "",
+        type_fk: Column = None,
     ) -> None:
         self.validate_action(on_delete, on_update)
         self.model = model
@@ -113,41 +102,59 @@ class OneToOne(Column):
         self.name_model = name_model
         self.name_fk = name_fk
         self.type_fk = type_fk
-        super().__init__('OneToOne', primary_key=True)
+        super().__init__("OneToOne", primary_key=True)
 
     def create_sql(self, dialect: str, field_name: str, name_table: str):
         generator_sql = get_dialect(dialect)
         field = self.model.get_id()[0]
         sql = generator_sql.add_foreing_key_column(
-            field=field, name=field_name, table_name=name_table,
-            on_delete=self.on_delete, on_update=self.on_update,
-            name_constraint=self.name_constraint)
+            field=field,
+            name=field_name,
+            table_name=name_table,
+            on_delete=self.on_delete,
+            on_update=self.on_update,
+            name_constraint=self.name_constraint,
+        )
         return sql
 
-    def sql(self, dialect: str, field_name: str, type_sql: str, table_name: str = '') -> str:
+    def sql(
+        self, dialect: str, field_name: str, type_sql: str, table_name: str = ""
+    ) -> str:
         generator_sql = get_dialect(dialect)
         field = self.model.get_id()[0]
-        sql = ''
-        if table_name != '':
+        sql = ""
+        if table_name != "":
             sql = generator_sql.alter_table_add_column_with_constraint(
-                table_name=table_name, field_name=field_name,
-                field_type=type_sql, field=field,
+                table_name=table_name,
+                field_name=field_name,
+                field_type=type_sql,
+                field=field,
                 table_relation=self.model.get_name(),
                 name_constraint=self.name_constraint,
-                on_delete=self.on_delete, on_update=self.on_update)
+                on_delete=self.on_delete,
+                on_update=self.on_update,
+            )
         else:
             sql = generator_sql.add_foreing_key_column(
-                name=field_name, table_name=table_name, field=field,
-                on_delete=self.on_delete, on_update=self.on_update,
-                name_constraint=self.name_constraint)
+                name=field_name,
+                table_name=table_name,
+                field=field,
+                on_delete=self.on_delete,
+                on_update=self.on_update,
+                name_constraint=self.name_constraint,
+            )
         return sql
 
     def sql_migration(self, dialect: str, field_name: str) -> str:
         generator_sql = get_dialect(dialect)
         sql = generator_sql.add_foreing_key_column(
-            name=field_name, table_name=self.name_model, field=self.name_fk,
-            on_delete=self.on_delete, on_update=self.on_update,
-            name_constraint=self.name_constraint)
+            name=field_name,
+            table_name=self.name_model,
+            field=self.name_fk,
+            on_delete=self.on_delete,
+            on_update=self.on_update,
+            name_constraint=self.name_constraint,
+        )
         return sql
 
 
@@ -159,7 +166,7 @@ class ManyToMany(Column):
         self.model = model
         self.model_: Type[Model] = None
         self.model_relation = model_relation
-        super().__init__('ManyToMany')
+        super().__init__("ManyToMany")
 
     async def add_models(self, model_instance_one: Model, model_instance_two: Model):
         model_dict: Dict[str, Any] = {}
@@ -195,9 +202,9 @@ class ManyToMany(Column):
         if self.model_:
             field_name = self.model_.get_id()[0]
             value_field = self.model_[field_name]
-            field_name_relation = ''
+            field_name_relation = ""
 
-        field_name_other_model = ''
+        field_name_other_model = ""
         for name, field in inspect.getmembers(self.model_relation):
             if (isinstance(field, ForeignKey)) and not field.primary_key:
                 if self.model == field.model:
@@ -207,11 +214,14 @@ class ManyToMany(Column):
 
         models_relations: List[Model] = []
         if self.model_:
-            condition = Condition(field_name_relation, '=', value_field)
+            condition = Condition(field_name_relation, "=", value_field)
             models_relations = await self.model_relation.find_all(
-                conditions=[condition])
+                conditions=[condition]
+            )
         else:
             models_relations = await self.model_relation.find_all()
 
-        result_models = list(map(lambda model: model[field_name_other_model], models_relations))
+        result_models = list(
+            map(lambda model: model[field_name_other_model], models_relations)
+        )
         return result_models
