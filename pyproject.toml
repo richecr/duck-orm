@@ -54,7 +54,6 @@ databases = "^0.7.0"
 [tool.poetry.dev-dependencies]
 aiosqlite = "^0.17.0"
 asyncpg = "^0.26.0"
-autopep8 = "^1.5.5"
 mkdocs-material = "^7.1.2"
 pytest-asyncio = "^0.21.0"
 pytest-cov = "^4.0.0"

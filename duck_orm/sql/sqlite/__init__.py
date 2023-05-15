@@ -3,16 +3,16 @@ from typing import List, Mapping
 from duck_orm.sql.sql import QueryExecutor
 
 SELECT_TABLES_SQL = "SELECT name FROM sqlite_master where type = 'table';"
-DROP_TABLE_SQL = 'DROP TABLE IF EXISTS {name};'
+DROP_TABLE_SQL = "DROP TABLE IF EXISTS {name};"
 TYPES_SQL = {
-    'str': 'TEXT',
-    'int': 'INTEGER',
-    'bigint': 'BIGINT',
-    'float': 'FLOAT',
-    'varchar': 'VARCHAR({length})',
-    'char': 'CHARACTER({length})',
-    'boolean': 'INTEGER',
-    'timestamp': 'TEXT'
+    "str": "TEXT",
+    "int": "INTEGER",
+    "bigint": "BIGINT",
+    "float": "FLOAT",
+    "varchar": "VARCHAR({length})",
+    "char": "CHARACTER({length})",
+    "boolean": "INTEGER",
+    "timestamp": "TEXT",
 }
 
 
@@ -22,18 +22,22 @@ class QuerySQLite(QueryExecutor):
         return DROP_TABLE_SQL.format(name=name_table)
 
     @classmethod
-    def parser(cls, row: Mapping, fields: List[str] = [], fields_foreign_key={}) -> dict:
+    def parser(
+        cls, row: Mapping, fields: List[str] = [], fields_foreign_key={}
+    ) -> dict:
         entity = {}
-        if (fields != []):
+        if fields != []:
             for field in fields:
                 field_type = None
                 if isinstance(field, tuple):
                     field = field[0]
                     field_type = field[1]
 
-                if (row.__contains__(field)):
+                if row.__contains__(field):
                     if field_type:
-                        entity[field] = datetime.strptime(row.get(field), '%Y-%m-%d %H:%M:%S.%f')
+                        entity[field] = datetime.strptime(
+                            row.get(field), "%Y-%m-%d %H:%M:%S.%f"
+                        )
                     elif field in fields_foreign_key.keys():
                         entity[field] = fields_foreign_key.get(field)
                     else:
