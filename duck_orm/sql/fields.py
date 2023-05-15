@@ -43,10 +43,10 @@ class Column:
 
         if self.auto_increment and dialect == "postgresql":
             column_sql = "SERIAL"
-        if self.auto_increment and dialect != "postgresql":
-            column_sql += " AUTOINCREMENT"
         if self.primary_key:
             column_sql += " PRIMARY KEY"
+        if self.auto_increment and dialect != "postgresql":
+            column_sql += " AUTOINCREMENT"
         if self.not_null:
             column_sql += " NOT NULL"
         if self.unique:
