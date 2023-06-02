@@ -1,5 +1,5 @@
 import inspect
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List, Optional, Type, Union
 
 from duck_orm.model import Model
 from duck_orm.sql.condition import Condition
@@ -17,15 +17,15 @@ class ForeignKey(Column):
         name_in_table_fk: str,
         unique: bool = False,
         name_constraint: str = "",
-        on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
-        on_update: ActionsEnum = ActionsEnum.CASCADE.value,
+        on_delete: ActionsEnum = ActionsEnum.NO_ACTION,
+        on_update: ActionsEnum = ActionsEnum.CASCADE,
     ) -> None:
-        self.validate_action(on_delete, on_update)
+        self.validate_action(on_delete.value, on_update.value)
         self.model = model
         self.name_in_table_fk = name_in_table_fk
         self.unique = unique
-        self.on_delete = on_delete
-        self.on_update = on_update
+        self.on_delete = on_delete.value
+        self.on_update = on_update.value
         self.name_constraint = name_constraint
         super().__init__("ForeignKey", unique=unique)
 
@@ -51,7 +51,7 @@ class OneToMany(Column):
     def __init__(self, model: Type[Model], name_in_table_fk: str) -> None:
         self.model = model
         self.name_in_table_fk = name_in_table_fk
-        self.model_: Type[Model] = None
+        self.model_: Union[Type[Model], None] = None
         super().__init__("OneToMany")
 
     async def add(self, model: Type[Model]):
@@ -86,17 +86,17 @@ class OneToOne(Column):
         self,
         model: Type[Model] = None,
         name_constraint: str = "",
-        on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
-        on_update: ActionsEnum = ActionsEnum.CASCADE.value,
+        on_delete: ActionsEnum = ActionsEnum.NO_ACTION,
+        on_update: ActionsEnum = ActionsEnum.CASCADE,
         name_model: str = "",
         name_fk: str = "",
         type_fk: Column = None,
     ) -> None:
-        self.validate_action(on_delete, on_update)
+        self.validate_action(on_delete.value, on_update.value)
         self.model = model
         self.name_constraint = name_constraint
-        self.on_delete = on_delete
-        self.on_update = on_update
+        self.on_delete = on_delete.value
+        self.on_update = on_update.value
         self.name_model = name_model
         self.name_fk = name_fk
         self.type_fk = type_fk

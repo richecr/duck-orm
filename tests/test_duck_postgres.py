@@ -57,8 +57,8 @@ class Son(Model):
         cls.person_id: int = ForeignKey(
             model=Person,
             name_in_table_fk="id",
-            on_delete="CASCADE",
-            on_update="CASCADE",
+            on_delete=Field.ActionsEnum.CASCADE,
+            on_update=Field.ActionsEnum.CASCADE,
         )
 
 

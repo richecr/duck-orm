@@ -144,9 +144,9 @@ class Varchar(Column, str):
         return column_sql.format(length=self.length)
 
 
-class Boolean(Column):
+class Boolean(Column, bool):
     def __new__(cls, **kwargs):
-        return super().__new__(cls)
+        return super().__new__(cls, kwargs)
 
     def __init__(self, not_null: bool = False, default_value=None):
         super().__init__("boolean", not_null=not_null, default_value=default_value)
