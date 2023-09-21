@@ -24,7 +24,9 @@ class ModelManager:
         except KeyError:
             return table_obj["tablename"]
 
-    async def create_all_tables(self, models_db: List = []):
+    async def create_all_tables(self, models_db: List = None):
+        if models_db is None:
+            models_db = []
         logging.info("Starts creating all tables in the database.")
         if len(self.models) > 0:
             for name, model in self.models.items():

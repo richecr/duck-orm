@@ -47,7 +47,7 @@ Homepage = "https://github.com/richecr/duckorm"
 Documentation = "https://richecr.github.io/duck-orm/"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10.4"
 python-dotenv = "^0.19.0"
 databases = "^0.7.0"
 
