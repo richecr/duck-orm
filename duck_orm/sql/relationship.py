@@ -1,5 +1,5 @@
 import inspect
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List, Optional, Type, Union
 
 from duck_orm.model import Model
 from duck_orm.sql.condition import Condition
@@ -17,15 +17,15 @@ class ForeignKey(Column):
         name_in_table_fk: str,
         unique: bool = False,
         name_constraint: str = "",
-        on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
-        on_update: ActionsEnum = ActionsEnum.CASCADE.value,
+        on_delete: ActionsEnum = ActionsEnum.NO_ACTION,
+        on_update: ActionsEnum = ActionsEnum.CASCADE,
     ) -> None:
-        self.validate_action(on_delete, on_update)
+        self.validate_action(on_delete.value, on_update.value)
         self.model = model
         self.name_in_table_fk = name_in_table_fk
         self.unique = unique
-        self.on_delete = on_delete
-        self.on_update = on_update
+        self.on_delete = on_delete.value
+        self.on_update = on_update.value
         self.name_constraint = name_constraint
         super().__init__("ForeignKey", unique=unique)
 
@@ -51,7 +51,7 @@ class OneToMany(Column):
     def __init__(self, model: Type[Model], name_in_table_fk: str) -> None:
         self.model = model
         self.name_in_table_fk = name_in_table_fk
-        self.model_: Type[Model] = None
+        self.model_: Union[Type[Model], None] = None
         super().__init__("OneToMany")
 
     async def add(self, model: Type[Model]):
@@ -62,13 +62,11 @@ class OneToMany(Column):
 
     async def get_all(self):
         result: List[Model] = []
-        if self.model_:
-            field_name = self.model_.get_id()[0]
-            condition = Condition(self.name_in_table_fk, "=", self.model_[field_name])
-            result = await self.model.find_all(conditions=[condition])
-        else:
-            result = await self.model.find_all()
-        return result
+        if not self.model_:
+            return await self.model.find_all()
+        field_name = self.model_.get_id()[0]
+        condition = Condition(self.name_in_table_fk, "=", self.model_[field_name])
+        return await self.model.find_all(conditions=[condition])
 
 
 class ManyToOne(Column):
@@ -88,17 +86,17 @@ class OneToOne(Column):
         self,
         model: Type[Model] = None,
         name_constraint: str = "",
-        on_delete: ActionsEnum = ActionsEnum.NO_ACTION.value,
-        on_update: ActionsEnum = ActionsEnum.CASCADE.value,
+        on_delete: ActionsEnum = ActionsEnum.NO_ACTION,
+        on_update: ActionsEnum = ActionsEnum.CASCADE,
         name_model: str = "",
         name_fk: str = "",
         type_fk: Column = None,
     ) -> None:
-        self.validate_action(on_delete, on_update)
+        self.validate_action(on_delete.value, on_update.value)
         self.model = model
         self.name_constraint = name_constraint
-        self.on_delete = on_delete
-        self.on_update = on_update
+        self.on_delete = on_delete.value
+        self.on_update = on_update.value
         self.name_model = name_model
         self.name_fk = name_fk
         self.type_fk = type_fk
@@ -107,7 +105,7 @@ class OneToOne(Column):
     def create_sql(self, dialect: str, field_name: str, name_table: str):
         generator_sql = get_dialect(dialect)
         field = self.model.get_id()[0]
-        sql = generator_sql.add_foreing_key_column(
+        return generator_sql.add_foreing_key_column(
             field=field,
             name=field_name,
             table_name=name_table,
@@ -115,7 +113,6 @@ class OneToOne(Column):
             on_update=self.on_update,
             name_constraint=self.name_constraint,
         )
-        return sql
 
     def sql(
         self, dialect: str, field_name: str, type_sql: str, table_name: str = ""
@@ -123,8 +120,8 @@ class OneToOne(Column):
         generator_sql = get_dialect(dialect)
         field = self.model.get_id()[0]
         sql = ""
-        if table_name != "":
-            sql = generator_sql.alter_table_add_column_with_constraint(
+        return (
+            generator_sql.alter_table_add_column_with_constraint(
                 table_name=table_name,
                 field_name=field_name,
                 field_type=type_sql,
@@ -134,8 +131,8 @@ class OneToOne(Column):
                 on_delete=self.on_delete,
                 on_update=self.on_update,
             )
-        else:
-            sql = generator_sql.add_foreing_key_column(
+            if table_name != ""
+            else generator_sql.add_foreing_key_column(
                 name=field_name,
                 table_name=table_name,
                 field=field,
@@ -143,11 +140,11 @@ class OneToOne(Column):
                 on_update=self.on_update,
                 name_constraint=self.name_constraint,
             )
-        return sql
+        )
 
     def sql_migration(self, dialect: str, field_name: str) -> str:
         generator_sql = get_dialect(dialect)
-        sql = generator_sql.add_foreing_key_column(
+        return generator_sql.add_foreing_key_column(
             name=field_name,
             table_name=self.name_model,
             field=self.name_fk,
@@ -155,7 +152,6 @@ class OneToOne(Column):
             on_update=self.on_update,
             name_constraint=self.name_constraint,
         )
-        return sql
 
 
 class ManyToMany(Column):
@@ -221,7 +217,4 @@ class ManyToMany(Column):
         else:
             models_relations = await self.model_relation.find_all()
 
-        result_models = list(
-            map(lambda model: model[field_name_other_model], models_relations)
-        )
-        return result_models
+        return list(map(lambda model: model[field_name_other_model], models_relations))

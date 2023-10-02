@@ -18,4 +18,4 @@ class Operator:
         elif operator == "IN":
             self.operator = "IN"
         else:
-            raise OperatorException("Operator: {op} is invalid.".format(op=operator))
+            raise OperatorException(f"Operator: {operator} is invalid.")

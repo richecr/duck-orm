@@ -102,11 +102,13 @@ class QueryExecutor:
             "on_delete": on_delete,
             "on_update": on_update,
         }
-        if name_constraint != "":
-            return ADD_COLUMN_FK_WITH_CONSTRAINT_SQL.format(
+        return (
+            ADD_COLUMN_FK_WITH_CONSTRAINT_SQL.format(
                 **args, name_constraint=name_constraint
             )
-        return ADD_COLUMN_FK_SQL.format(**args)
+            if name_constraint
+            else ADD_COLUMN_FK_SQL.format(**args)
+        )
 
     @classmethod
     def add_foreing_key_column(
@@ -125,11 +127,13 @@ class QueryExecutor:
             "on_delete": on_delete,
             "on_update": on_update,
         }
-        if name_constraint != "":
-            return ADD_FK_WITH_CONSTRAINT_WITHOUT_ALTER_SQL.format(
+        return (
+            ADD_FK_WITH_CONSTRAINT_WITHOUT_ALTER_SQL.format(
                 **args, name_constraint=name_constraint
             )
-        return ADD_FK_COLUMN_SQL.format(**args)
+            if name_constraint
+            else ADD_FK_COLUMN_SQL.format(**args)
+        )
 
     @classmethod
     def select_tables_sql(cls):
@@ -140,21 +144,22 @@ class QueryExecutor:
         cls, row: Mapping, fields: List[str] = [], fields_foreign_key: dict = {}
     ) -> dict:
         entity = {}
-        if fields != []:
+        if not fields:
+            for key, value in row.items():
+                entity[key] = value
+        else:
             for field in fields:
                 if isinstance(field, tuple):
                     field = field[0]
 
                 if row.__contains__(field):
-                    if fields_foreign_key.__contains__(field):
-                        entity[field] = fields_foreign_key.get(field)
-                    else:
-                        entity[field] = row.get(field)
+                    entity[field] = (
+                        fields_foreign_key.get(field)
+                        if fields_foreign_key.__contains__(field)
+                        else row.get(field)
+                    )
                 elif fields_foreign_key.__contains__(field):
                     entity[field] = fields_foreign_key[field]
                 else:
                     entity[field] = None
-        else:
-            for key, value in row.items():
-                entity[key] = value
         return entity

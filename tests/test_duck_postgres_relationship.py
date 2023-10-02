@@ -1,7 +1,5 @@
 from databases.core import Database
 from dotenv import load_dotenv
-import functools
-import asyncio
 import pytest
 import os
 
