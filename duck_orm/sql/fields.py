@@ -1,9 +1,9 @@
-from typing import Dict
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+from typing import Dict
 
-from duck_orm.sql.sqlite import TYPES_SQL as TYPES_SQL_LITE
 from duck_orm.sql.postgres import TYPES_SQL as TYPES_SQL_POSTGRES
+from duck_orm.sql.sqlite import TYPES_SQL as TYPES_SQL_LITE
 
 
 class ActionsEnum(Enum):
@@ -61,18 +61,10 @@ class Column:
 
     def validate_action(self, on_delete: str, on_update: str):
         if not ActionsEnum.has_value(on_delete):
-            raise Exception(
-                "ON DELETE with action {on_delete} is invalid".format(
-                    on_delete=on_delete
-                )
-            )
+            raise Exception("ON DELETE with action {on_delete} is invalid".format(on_delete=on_delete))
 
         if not ActionsEnum.has_value(on_update):
-            raise Exception(
-                "ON UPDATE with action {on_update} is invalid".format(
-                    on_update=on_update
-                )
-            )
+            raise Exception("ON UPDATE with action {on_update} is invalid".format(on_update=on_update))
 
 
 class String(Column, str):
@@ -86,9 +78,7 @@ class String(Column, str):
         not_null: bool = False,
         default_value=None,
     ):
-        super().__init__(
-            "str", unique, primary_key, not_null, default_value=default_value
-        )
+        super().__init__("str", unique, primary_key, not_null, default_value=default_value)
 
 
 class Integer(Column, int):
@@ -97,7 +87,7 @@ class Integer(Column, int):
 
     def __init__(
         self,
-        min_value: int = None,
+        min_value: int | None = None,
         unique: bool = False,
         primary_key: bool = False,
         auto_increment: bool = False,
@@ -119,9 +109,7 @@ class BigInteger(Column, int):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(
-        self, unique: bool = False, primary_key: bool = False, default_value=None
-    ):
+    def __init__(self, unique: bool = False, primary_key: bool = False, default_value=None):
         super().__init__("bigint", unique, primary_key, default_value=default_value)
 
 
@@ -144,9 +132,9 @@ class Varchar(Column, str):
         return column_sql.format(length=self.length)
 
 
-class Boolean(Column, bool):
-    def __new__(cls, **kwargs):
-        return super().__new__(cls, kwargs)
+class Boolean(Column):
+    def __new__(cls):
+        return super().__new__(cls)
 
     def __init__(self, not_null: bool = False, default_value=None):
         super().__init__("boolean", not_null=not_null, default_value=default_value)

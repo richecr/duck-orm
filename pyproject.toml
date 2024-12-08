@@ -42,18 +42,18 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP",
 ]
 
-[project.urls]
-Homepage = "https://github.com/richecr/duckorm"
-Documentation = "https://richecr.github.io/duck-orm/"
+[tool.poetry.urls]
+homepage = "https://github.com/richecr/duckorm"
+documentation = "https://richecr.github.io/duck-orm/"
 
 [tool.poetry.dependencies]
-python = "^3.10.4"
+python = "^3.12.3"
 python-dotenv = "^0.19.0"
-databases = "^0.7.0"
+databases = "^0.9.0"
 
 [tool.poetry.dev-dependencies]
-aiosqlite = "^0.17.0"
-asyncpg = "^0.26.0"
+aiosqlite = "^0.20.0"
+asyncpg = "^0.29.0"
 mkdocs-material = "^7.1.2"
 pytest-asyncio = "^0.21.0"
 pytest-cov = "^4.0.0"
@@ -63,6 +63,14 @@ pytest = "^7.3.1"
 postgresql = ["asyncpg"]
 postgresql-aiopg = ["aiopg"]
 sqlite = ["aiosqlite"]
+
+# [tool.mypy]
+# exclude = ["tests", "venv", "env"]
+# strict = true
+# warn_no_return = false
+
+# [tool.mypy-test]
+# ignore_errors = true
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

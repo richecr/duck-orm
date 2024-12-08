@@ -1,10 +1,10 @@
 import inspect
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Type, Union
 
 from duck_orm.model import Model
 from duck_orm.sql.condition import Condition
+from duck_orm.sql.fields import ActionsEnum, Column
 from duck_orm.utils.functions import get_dialect
-from duck_orm.sql.fields import Column, ActionsEnum
 
 
 class ForeignKey(Column):
@@ -13,7 +13,7 @@ class ForeignKey(Column):
 
     def __init__(
         self,
-        model: Type[Model],
+        model: Model,
         name_in_table_fk: str,
         unique: bool = False,
         name_constraint: str = "",
@@ -48,20 +48,19 @@ class OneToMany(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, model: Type[Model], name_in_table_fk: str) -> None:
+    def __init__(self, model: Model, name_in_table_fk: str) -> None:
         self.model = model
         self.name_in_table_fk = name_in_table_fk
-        self.model_: Union[Type[Model], None] = None
+        self.model_: Union[Model, None] = None
         super().__init__("OneToMany")
 
-    async def add(self, model: Type[Model]):
+    async def add(self, model: Model):
         if self.model_:
             model._instance[self.name_in_table_fk] = self.model_
         self.model_ = None
         return await self.model.save(model)
 
-    async def get_all(self):
-        result: List[Model] = []
+    async def get_all(self) -> List[Model]:
         if not self.model_:
             return await self.model.find_all()
         field_name = self.model_.get_id()[0]
@@ -73,7 +72,7 @@ class ManyToOne(Column):
     def __new__(cls, **kwargs):
         return super().__new__(cls)
 
-    def __init__(self, model: Type[Model]):
+    def __init__(self, model: Model):
         self.model = model
         super().__init__("OneToMany")
 
@@ -84,13 +83,13 @@ class OneToOne(Column):
 
     def __init__(
         self,
-        model: Type[Model] = None,
+        model: Model | None = None,
         name_constraint: str = "",
         on_delete: ActionsEnum = ActionsEnum.NO_ACTION,
         on_update: ActionsEnum = ActionsEnum.CASCADE,
         name_model: str = "",
         name_fk: str = "",
-        type_fk: Column = None,
+        type_fk: Column | None = None,
     ) -> None:
         self.validate_action(on_delete.value, on_update.value)
         self.model = model
@@ -104,6 +103,9 @@ class OneToOne(Column):
 
     def create_sql(self, dialect: str, field_name: str, name_table: str):
         generator_sql = get_dialect(dialect)
+        if not self.model:
+            raise ValueError("The model is required")
+
         field = self.model.get_id()[0]
         return generator_sql.add_foreing_key_column(
             field=field,
@@ -114,12 +116,12 @@ class OneToOne(Column):
             name_constraint=self.name_constraint,
         )
 
-    def sql(
-        self, dialect: str, field_name: str, type_sql: str, table_name: str = ""
-    ) -> str:
+    def sql(self, dialect: str, field_name: str, type_sql: str, table_name: str = "") -> str:
         generator_sql = get_dialect(dialect)
+        if not self.model:
+            raise ValueError("The model is required")
+
         field = self.model.get_id()[0]
-        sql = ""
         return (
             generator_sql.alter_table_add_column_with_constraint(
                 table_name=table_name,
@@ -160,7 +162,7 @@ class ManyToMany(Column):
 
     def __init__(self, model: Type[Model], model_relation: Type[Model]):
         self.model = model
-        self.model_: Type[Model] = None
+        self.model_: Model | None = None
         self.model_relation = model_relation
         super().__init__("ManyToMany")
 
@@ -168,10 +170,10 @@ class ManyToMany(Column):
         model_dict: Dict[str, Any] = {}
         for name, field in inspect.getmembers(self.model_relation):
             if (isinstance(field, ForeignKey)) and not field.primary_key:
-                if isinstance(model_instance_one, field.model):
+                if model_instance_one.__tablename__ == field.model.__tablename__:
                     name_field = model_instance_one.get_id()[0]
                     model_dict[name] = model_instance_one[name_field]
-                elif isinstance(model_instance_two, field.model):
+                elif model_instance_two.__tablename__ == field.model.__tablename__:
                     name_field = model_instance_two.get_id()[0]
                     model_dict[name] = model_instance_two[name_field]
 
@@ -183,10 +185,10 @@ class ManyToMany(Column):
         model_dict: Dict[str, Any] = {}
         for name, field in inspect.getmembers(self.model_relation):
             if (isinstance(field, ForeignKey)) and not field.primary_key:
-                if isinstance(model_instance_one, field.model):
+                if model_instance_one.__tablename__ == field.model.__tablename__:
                     name_field = model_instance_one.get_id()[0]
                     model_dict[name] = model_instance_one[name_field]
-                elif isinstance(self.model_, field.model):
+                elif self.model_ and self.model_.__tablename__ == field.model.__tablename__:
                     name_field = self.model_.get_id()[0]
                     model_dict[name] = self.model_[name_field]
 
@@ -211,9 +213,7 @@ class ManyToMany(Column):
         models_relations: List[Model] = []
         if self.model_:
             condition = Condition(field_name_relation, "=", value_field)
-            models_relations = await self.model_relation.find_all(
-                conditions=[condition]
-            )
+            models_relations = await self.model_relation.find_all(conditions=[condition])
         else:
             models_relations = await self.model_relation.find_all()
 

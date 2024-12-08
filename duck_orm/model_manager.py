@@ -1,5 +1,6 @@
 import logging
 from typing import Dict, List
+
 from databases.core import Database
 
 from duck_orm.model import Model
@@ -10,12 +11,12 @@ from duck_orm.utils.functions import get_dialect
 class ModelManager:
     def __init__(self) -> None:
         self.models: Dict[str, Model] = {}
-        self.db_connection: Database = None
+        self.db_connection: Database
 
-    def add_model(self, name: str, model: Model):
+    def add_model(self, name: str, model: Model) -> None:
         self.models[name] = model
 
-    def remove_model(self, name: str):
+    def remove_model(self, name: str) -> None:
         del self.models[name]
 
     def __get_table_name(self, table_obj: dict[str, str]) -> str:
@@ -24,16 +25,17 @@ class ModelManager:
         except KeyError:
             return table_obj["tablename"]
 
-    async def create_all_tables(self, models_db: List = None):
+    async def create_all_tables(self, models_db: List | None = None) -> None:
         if models_db is None:
             models_db = []
-        logging.info("Starts creating all tables in the database.")
+        logging.debug("Starts creating all tables in the database.")
         if len(self.models) > 0:
             for name, model in self.models.items():
                 logging.info(f"Create table {name}!")
                 await model.create()
 
-            logging.info("Creation of table associations in the database.")
+            logging.debug("Creation of table associations in the database.")
+            print("models_db", models_db)
             models_db = list(map(lambda model: self.__get_table_name(model), models_db))
             for name, model in self.models.items():
                 if name not in models_db:
@@ -41,14 +43,12 @@ class ModelManager:
                 else:
                     model.relationships()
         else:
-            logging.error("No models found")
-            Exception(
-                "No models found: I created your models and put the "
-                + "model_manager attribute on them."
-            )
+            print("No models found")
+            logging.warning("No models found")
+            Exception("No models found: I created your models and put the " + "model_manager attribute on them.")
 
     async def drop_all_tables(self):
-        logging.info("Delete all tables in the database.")
+        logging.debug("Delete all tables in the database.")
         for _, model in self.models.items():
             await model.drop_table(cascade=True)
 

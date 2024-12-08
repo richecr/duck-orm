@@ -1,13 +1,14 @@
-from databases.core import Database
-import functools
 import asyncio
-import pytest
+import functools
 
+import pytest
+from databases.core import Database
+
+from duck_orm.exceptions import UpdateException
 from duck_orm.model import Model
 from duck_orm.model_manager import ModelManager
 from duck_orm.sql import fields as Field
 from duck_orm.sql.condition import Condition
-from duck_orm.exceptions import UpdateException
 from duck_orm.sql.relationship import ForeignKey
 
 db = Database("sqlite:///example.db")
@@ -113,8 +114,10 @@ def get_table(table, tables):
 @async_decorator
 async def test_create_table():
     await db.connect()
-    await model_manager.create_all_tables()
-    t = await db.fetch_all("SELECT name FROM sqlite_master where type = 'table';")
+    # await model_manager.create_all_tables()
+    await Person.create()
+    await Son.create()
+    await MyTest.create()
     tables = await Person.find_all_tables()
     assert get_table("persons", tables)
     assert get_table("mytest", tables)
@@ -157,9 +160,7 @@ async def test_select_all_excludes_persons():
 
 @async_decorator
 async def test_sql_select_where_persons():
-    sql = Person._Model__get_select_sql(
-        conditions=[Condition("first_name", "=", "Rich")]
-    )
+    sql = Person._Model__get_select_sql(conditions=[Condition("first_name", "=", "Rich")])
     fields = sql[0].split("SELECT ")[1].split(" FROM ")[0]
     assert fields.__contains__("id")
     assert fields.__contains__("age")

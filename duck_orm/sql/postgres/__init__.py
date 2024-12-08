@@ -1,8 +1,6 @@
 from duck_orm.sql.sql import QueryExecutor
 
-SELECT_TABLES_SQL = (
-    "SELECT tablename " + "FROM pg_tables " + "WHERE schemaname = 'public';"
-)
+SELECT_TABLES_SQL = "SELECT tablename " + "FROM pg_tables " + "WHERE schemaname = 'public';"
 TYPES_SQL = {
     "str": "TEXT",
     "int": "INTEGER",

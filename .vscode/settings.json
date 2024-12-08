@@ -1,6 +1,13 @@
 {
-    "python.defaultInterpreterPath": "/home/richecr/.cache/pypoetry/virtualenvs/duck-orm-erUeO-Z3-py3.10/bin/python",
+    "python.defaultInterpreterPath": "/home/richecr/.cache/pypoetry/virtualenvs/duck-orm--mL6tpsN-py3.12/bin/python",
+    "ruff.lint.args": ["--config=/home/richecr/projects/duck-orm/ruff.toml"],
+    "ruff.format.args": ["--config=/home/richecr/projects/duck-orm/ruff.toml"],
     "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter"
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+        },
+        "editor.defaultFormatter": "charliermarsh.ruff"
     }
 }

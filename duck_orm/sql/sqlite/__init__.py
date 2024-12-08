@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List, Mapping
+
 from duck_orm.sql.sql import QueryExecutor
 
 SELECT_TABLES_SQL = "SELECT name FROM sqlite_master where type = 'table';"
@@ -22,9 +23,7 @@ class QuerySQLite(QueryExecutor):
         return DROP_TABLE_SQL.format(name=name_table)
 
     @classmethod
-    def parser(
-        cls, row: Mapping, fields: List[str] = [], fields_foreign_key={}
-    ) -> dict:
+    def parser(cls, row: Mapping, fields: List[str] = [], fields_foreign_key={}) -> dict:
         entity = {}
         if fields != []:
             for field in fields:
@@ -33,19 +32,22 @@ class QuerySQLite(QueryExecutor):
                     field = field[0]
                     field_type = field[1]
 
-                if row.__contains__(field):
-                    if field_type:
-                        entity[field] = datetime.strptime(
-                            row.get(field), "%Y-%m-%d %H:%M:%S.%f"
-                        )
-                    elif field in fields_foreign_key.keys():
-                        entity[field] = fields_foreign_key.get(field)
+                try:
+                    value = row[field]
+                    if value is not None:
+                        if field_type:
+                            entity[field] = datetime.strptime(value, "%Y-%m-%d %H:%M:%S.%f")
+                        elif field in fields_foreign_key.keys():
+                            entity[field] = fields_foreign_key.get(field)
+                        else:
+                            entity[field] = value
+                    elif fields_foreign_key.__contains__(field):
+                        entity[field] = fields_foreign_key[field]
                     else:
-                        entity[field] = row.get(field)
-                elif fields_foreign_key.__contains__(field):
-                    entity[field] = fields_foreign_key[field]
-                else:
+                        entity[field] = None
+                except KeyError:
                     entity[field] = None
+
         else:
             for key, value in row.items():
                 entity[key] = value
